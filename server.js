@@ -360,11 +360,13 @@ function getDefaultTemplate(name, content) {
             const format = Parser.formats[type];
             if (!format) return;
             if (['h1', 'h2', 'h3', 'quote'].includes(type)) {
-                let lineStart = editor.value.substring(0, editor.selectionStart).lastIndexOf('\n') + 1;
-                let lineContent = editor.value.substring(lineStart);
+                const start = editor.selectionStart;
+                const end = editor.selectionEnd;
+                const text = editor.value;
+                const lineStart = text.lastIndexOf('\n', start - 1) + 1;
+                let lineContent = text.substring(lineStart);
                 let newPrefix = type === 'h1' ? '=== ' : type === 'h2' ? '== ' : type === 'h3' ? '= ' : '> ';
 
-                // 检测并移除已有的标题/引用前缀
                 const prefixPatterns = [
                     { regex: /^=== /, length: 4 },
                     { regex: /^== /, length: 3 },
@@ -380,7 +382,13 @@ function getDefaultTemplate(name, content) {
                     }
                 }
 
-                editor.value = editor.value.substring(0, lineStart) + newPrefix + contentToUse;
+                const newLineText = newPrefix + contentToUse;
+                editor.value = text.substring(0, lineStart) + newLineText + text.substring(lineStart + lineContent.length);
+
+                // 选中整个新效果内容（从前缀后到内容末尾）
+                editor.selectionStart = lineStart + newPrefix.length;
+                editor.selectionEnd = lineStart + newPrefix.length + contentToUse.length;
+
                 hasChanges = true; status.textContent = '未保存'; status.className = 'status'; updatePreview();
                 return;
             }
