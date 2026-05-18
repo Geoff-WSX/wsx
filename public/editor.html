@@ -321,12 +321,16 @@
                             trimmed = trimmed.substring(pattern.marker.length, trimmed.length - pattern.endMarker.length);
                             useBefore = '';
                             useAfter = '';
+                            console.log('取消效果:', before, '-> 剩余:', trimmed);
                         }
                         // 未闭合（如 **hello）：补全效果
                         else if (trimmed.startsWith(pattern.marker)) {
                             useBefore = pattern.marker;
                             useAfter = pattern.endMarker;
                             trimmed = trimmed.substring(pattern.marker.length);
+                            console.log('补全效果:', before, '-> 内容:', trimmed);
+                        } else {
+                            console.log('添加效果:', before, '-> 内容:', trimmed);
                         }
                     }
 

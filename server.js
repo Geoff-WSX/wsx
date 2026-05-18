@@ -422,12 +422,16 @@ function getDefaultTemplate(name, content) {
                     trimmed = trimmed.substring(pattern.marker.length, trimmed.length - pattern.endMarker.length);
                     useStart = '';
                     useEnd = '';
+                    console.log('取消效果:', format.start, '-> 剩余:', trimmed);
                 }
                 // 未闭合（如 <b>hello）：补全效果
                 else if (trimmed.startsWith(pattern.marker)) {
                     useStart = pattern.marker;
                     useEnd = pattern.endMarker;
                     trimmed = trimmed.substring(pattern.marker.length);
+                    console.log('补全效果:', format.start, '-> 内容:', trimmed);
+                } else {
+                    console.log('添加效果:', format.start, '-> 内容:', trimmed);
                 }
             }
 
