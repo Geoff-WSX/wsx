@@ -301,27 +301,32 @@
                         editor.selectionEnd = lineStart + before.length + contentToUse.length;
                     }
                 } else {
-                    // 检查是否已存在该效果，如果有则移除
+                    // 检查是否已存在该效果：完整包裹则取消，未闭合则补全
                     const markerPatterns = {
-                        '**': { regex: /^\*\*(.+)\*\*$/, marker: '**', endMarker: '**' },
-                        '*': { regex: /^\*(.+)\*$/, marker: '*', endMarker: '*' },
-                        '~~': { regex: /^~~(.+)~~$/, marker: '~~', endMarker: '~~' },
-                        '__': { regex: /^__(.+)__$/, marker: '__', endMarker: '__' },
-                        '`': { regex: /^\x60(.+)\x60$/, marker: '`', endMarker: '`' }
+                        '**': { marker: '**', endMarker: '**' },
+                        '*': { marker: '*', endMarker: '*' },
+                        '~~': { marker: '~~', endMarker: '~~' },
+                        '__': { marker: '__', endMarker: '__' },
+                        '`': { marker: '`', endMarker: '`' }
                     };
 
                     const pattern = markerPatterns[before];
                     let useBefore = before;
                     let useAfter = after;
-                    let trimmed = selected;
+                    let trimmed = selected.trim();
 
                     if (pattern) {
-                        trimmed = selected.trim();
-                        if (pattern.regex.test(trimmed)) {
-                            // 已有效果，取消包裹
+                        // 完整包裹（如 **hello**）：取消效果
+                        if (trimmed.startsWith(pattern.marker) && trimmed.endsWith(pattern.endMarker)) {
                             trimmed = trimmed.substring(pattern.marker.length, trimmed.length - pattern.endMarker.length);
                             useBefore = '';
                             useAfter = '';
+                        }
+                        // 未闭合（如 **hello）：补全效果
+                        else if (trimmed.startsWith(pattern.marker)) {
+                            useBefore = pattern.marker;
+                            useAfter = pattern.endMarker;
+                            trimmed = trimmed.substring(pattern.marker.length);
                         }
                     }
 

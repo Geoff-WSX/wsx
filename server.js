@@ -402,26 +402,32 @@ function getDefaultTemplate(name, content) {
             const start = editor.selectionStart, end = editor.selectionEnd;
             const selected = editor.value.substring(start, end);
 
-            // 检查是否已存在该效果，如果有则移除
+            // 检查是否已存在该效果：完整包裹则取消，未闭合则补全
             const markerPatterns = {
-                '<b>': { regex: /^<b>(.+)<\/b>$/, marker: '<b>', endMarker: '</b>' },
-                '<i>': { regex: /^<i>(.+)<\/i>$/, marker: '<i>', endMarker: '</i>' },
-                '<s>': { regex: /^<s>(.+)<\/s>$/, marker: '<s>', endMarker: '</s>' },
-                '<u>': { regex: /^<u>(.+)<\/u>$/, marker: '<u>', endMarker: '</u>' },
-                '<span class="code">': { regex: /^<span class="code">(.+)<\/span>$/, marker: '<span class="code">', endMarker: '</span>' }
+                '<b>': { marker: '<b>', endMarker: '</b>' },
+                '<i>': { marker: '<i>', endMarker: '</i>' },
+                '<s>': { marker: '<s>', endMarker: '</s>' },
+                '<u>': { marker: '<u>', endMarker: '</u>' },
+                '<span class="code">': { marker: '<span class="code">', endMarker: '</span>' }
             };
 
             const pattern = markerPatterns[format.start];
             let useStart = format.start;
             let useEnd = format.end;
-            let trimmed = selected;
+            let trimmed = selected.trim();
 
             if (pattern) {
-                trimmed = selected.trim();
-                if (pattern.regex.test(trimmed)) {
+                // 完整包裹（如 <b>hello</b>）：取消效果
+                if (trimmed.startsWith(pattern.marker) && trimmed.endsWith(pattern.endMarker)) {
                     trimmed = trimmed.substring(pattern.marker.length, trimmed.length - pattern.endMarker.length);
                     useStart = '';
                     useEnd = '';
+                }
+                // 未闭合（如 <b>hello）：补全效果
+                else if (trimmed.startsWith(pattern.marker)) {
+                    useStart = pattern.marker;
+                    useEnd = pattern.endMarker;
+                    trimmed = trimmed.substring(pattern.marker.length);
                 }
             }
 
