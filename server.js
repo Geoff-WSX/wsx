@@ -303,10 +303,10 @@ function getDefaultTemplate(name, content) {
                 let html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 const lines = html.split('\n');
                 html = lines.map(line => {
-                    if (line.startsWith('===')) return '<span class="h1 line">' + line.slice(4) + '</span>';
-                    if (line.startsWith('== ')) return '<span class="h2 line">' + line.slice(3) + '</span>';
-                    if (line.startsWith('= ')) return '<span class="h3 line">' + line.slice(2) + '</span>';
-                    if (line.startsWith('&gt;')) return '<span class="quote line">' + line.slice(5) + '</span>';
+                    if (line.startsWith('===')) return '<span class="h1 line">' + this.parseInline(line.slice(4).trim()) + '</span>';
+                    if (line.startsWith('== ')) return '<span class="h2 line">' + this.parseInline(line.slice(3).trim()) + '</span>';
+                    if (line.startsWith('= ')) return '<span class="h3 line">' + this.parseInline(line.slice(2).trim()) + '</span>';
+                    if (line.startsWith('&gt;')) return '<span class="quote line">' + this.parseInline(line.slice(5).trim()) + '</span>';
                     return '<span class="line">' + this.parseInline(line) + '</span>';
                 }).join('\n');
                 return html;
