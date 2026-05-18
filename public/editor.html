@@ -260,8 +260,33 @@
                 const editor = this.elements.editor;
                 const start = editor.selectionStart;
                 const end = editor.selectionEnd;
-                const text = editor.value;
-                const selected = text.substring(start, end) || '文字';
+                let text = editor.value;
+                let selected = text.substring(start, end) || '文字';
+
+                // 如果是标题/引用操作，需要检测并移除已有的前缀
+                const prefixPatterns = [
+                    { regex: /^=== /, length: 4 },
+                    { regex: /^== /, length: 3 },
+                    { regex: /^= /, length: 2 },
+                    { regex: /^> /, length: 2 }
+                ];
+
+                // 检查是否要处理前缀
+                const isTitleOrQuote = before === '=== ' || before === '== ' || before === '= ' || before === '> ';
+
+                if (isTitleOrQuote) {
+                    // 先移除已有的标题/引用前缀
+                    for (const p of prefixPatterns) {
+                        if (p.regex.test(selected)) {
+                            selected = selected.substring(p.length);
+                            break;
+                        }
+                    }
+                    // 如果没有选中文本（使用默认值），去掉前缀的空格
+                    if (text.substring(start, end) === '') {
+                        before = '';
+                    }
+                }
 
                 editor.value = text.substring(0, start) + before + selected + after + text.substring(end);
                 editor.selectionStart = start + before.length;
