@@ -126,10 +126,20 @@
                 // 行级处理
                 const lines = html.split('\n');
                 html = lines.map(line => {
-                    if (line.startsWith('===')) return '<span class="h1 line">' + this.parseInline(line.slice(4).trim()) + '</span>';
-                    if (line.startsWith('== ')) return '<span class="h2 line">' + this.parseInline(line.slice(3).trim()) + '</span>';
-                    if (line.startsWith('= ')) return '<span class="h3 line">' + this.parseInline(line.slice(2).trim()) + '</span>';
-                    if (line.startsWith('&gt;')) return '<span class="quote line">' + this.parseInline(line.slice(5).trim()) + '</span>';
+                    if (line.startsWith('===')) {
+                        // 标题行：前缀后的内容不再解析格式化
+                        return '<span class="h1 line">' + this.escapeHtml(line.slice(4).trim()) + '</span>';
+                    }
+                    if (line.startsWith('== ')) {
+                        return '<span class="h2 line">' + this.escapeHtml(line.slice(3).trim()) + '</span>';
+                    }
+                    if (line.startsWith('= ')) {
+                        return '<span class="h3 line">' + this.escapeHtml(line.slice(2).trim()) + '</span>';
+                    }
+                    if (line.startsWith('&gt;')) {
+                        // 引用行：前缀后的内容不再解析格式化
+                        return '<span class="quote line">' + this.escapeHtml(line.slice(5).trim()) + '</span>';
+                    }
                     return '<span class="line">' + this.parseInline(line) + '</span>';
                 }).join('\n');
                 return html;
