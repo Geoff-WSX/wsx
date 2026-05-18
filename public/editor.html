@@ -16,7 +16,6 @@
             --accent: #e94560;
             --accent-hover: #ff6b6b;
             --border: #dddddd;
-            --shadow: rgba(0, 0, 0, 0.1);
         }
 
         [data-theme="dark"] {
@@ -27,268 +26,64 @@
             --text-primary: #eeeeee;
             --text-secondary: #aaaaaa;
             --text-muted: #555555;
-            --accent: #e94560;
-            --accent-hover: #ff6b6b;
             --border: #0f3460;
-            --shadow: rgba(0, 0, 0, 0.3);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            transition: background 0.3s, color 0.3s;
-        }
-
-        .header {
-            background: var(--bg-header);
-            padding: 12px 20px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: background 0.3s, border-color 0.3s;
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .header h1 {
-            font-size: 1.2rem;
-            color: var(--accent);
-        }
-
-        .header h1 span { margin-right: 8px; }
-
-        .note-name {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-
-        .toolbar {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .toolbar-btn {
-            background: transparent;
-            border: 1px solid transparent;
-            color: var(--text-primary);
-            padding: 6px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            font-family: inherit;
-            transition: all 0.15s;
-        }
-
-        .toolbar-btn:hover {
-            background: var(--bg-secondary);
-            border-color: var(--border);
-        }
-
-        .toolbar-btn.active {
-            background: var(--accent);
-            color: white;
-            border-color: var(--accent);
-        }
-
-        .toolbar-sep {
-            width: 1px;
-            height: 20px;
-            background: var(--border);
-            margin: 0 8px;
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .theme-toggle {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 13px;
-            transition: all 0.2s;
-        }
-
-        .theme-toggle:hover {
-            background: var(--accent);
-            color: white;
-            border-color: var(--accent);
-        }
-
-        .main-container {
-            flex: 1;
-            display: flex;
-            overflow: hidden;
-        }
-
-        .editor-pane, .preview-pane {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-        }
-
-        .pane-header {
-            background: var(--bg-secondary);
-            padding: 8px 16px;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            border-bottom: 1px solid var(--border);
-            font-weight: 500;
-            transition: background 0.3s, border-color 0.3s;
-        }
-
-        .editor-wrapper {
-            flex: 1;
-            padding: 16px;
-            background: var(--bg-editor);
-            overflow: auto;
-            transition: background 0.3s;
-        }
-
-        textarea {
-            width: 100%;
-            height: 100%;
-            min-height: calc(100vh - 140px);
-            background: transparent;
-            border: none;
-            color: var(--text-primary);
-            font-size: 15px;
-            line-height: 1.8;
-            resize: none;
-            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
-            transition: color 0.3s;
-        }
-
+        body { font-family: -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; display: flex; flex-direction: column; }
+        .header { background: var(--bg-header); padding: 12px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+        .header-left { display: flex; align-items: center; gap: 16px; }
+        .header h1 { font-size: 1.2rem; color: var(--accent); }
+        .note-name { color: var(--text-secondary); font-size: 0.9rem; }
+        .toolbar { display: flex; align-items: center; gap: 4px; }
+        .toolbar-btn { background: transparent; border: 1px solid transparent; color: var(--text-primary); padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .toolbar-btn:hover { background: var(--bg-secondary); border-color: var(--border); }
+        .toolbar-sep { width: 1px; height: 20px; background: var(--border); margin: 0 8px; }
+        .header-right { display: flex; align-items: center; gap: 12px; }
+        .theme-toggle { background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-primary); padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+        .theme-toggle:hover { background: var(--accent); color: white; }
+        .main-container { flex: 1; display: flex; overflow: hidden; }
+        .editor-pane, .preview-pane { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+        .pane-header { background: var(--bg-secondary); padding: 8px 16px; font-size: 0.8rem; color: var(--text-secondary); border-bottom: 1px solid var(--border); }
+        .editor-wrapper { flex: 1; padding: 16px; background: var(--bg-editor); overflow: auto; }
+        textarea { width: 100%; height: 100%; min-height: calc(100vh - 140px); background: transparent; border: none; color: var(--text-primary); font-size: 15px; line-height: 1.8; resize: none; font-family: monospace; }
         textarea:focus { outline: none; }
-        textarea::placeholder { color: var(--text-muted); }
-
-        .preview-wrapper {
-            flex: 1;
-            padding: 16px;
-            background: var(--bg-primary);
-            overflow: auto;
-            transition: background 0.3s;
-        }
-
-        .preview-content {
-            max-width: 800px;
-            margin: 0 auto;
-            line-height: 1.8;
-            font-size: 15px;
-            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-
-        /* 格式化样式 */
-        .preview-content .bold { font-weight: bold; }
-        .preview-content .italic { font-style: italic; }
-        .preview-content .strike { text-decoration: line-through; }
-        .preview-content .underline { text-decoration: underline; }
-
-        .preview-content .h1 { font-size: 2em; font-weight: bold; margin: 0.5em 0; display: block; }
-        .preview-content .h2 { font-size: 1.5em; font-weight: bold; margin: 0.5em 0; display: block; }
-        .preview-content .h3 { font-size: 1.25em; font-weight: bold; margin: 0.5em 0; display: block; }
-
-        .preview-content .quote {
-            border-left: 4px solid var(--accent);
-            padding-left: 12px;
-            color: var(--text-secondary);
-            margin: 0.5em 0;
-            display: block;
-        }
-
-        .preview-content .code {
-            background: var(--bg-secondary);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: monospace;
-            color: var(--accent);
-        }
-
-        .preview-content .url {
-            color: var(--accent);
-            text-decoration: underline;
-        }
-
-        .preview-content .line { display: block; margin: 0.25em 0; }
-
-        .footer {
-            background: var(--bg-secondary);
-            padding: 8px 20px;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            border-top: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            transition: background 0.3s, border-color 0.3s;
-        }
-
-        .footer kbd {
-            background: var(--bg-primary);
-            padding: 2px 5px;
-            border-radius: 3px;
-            margin: 0 2px;
-            border: 1px solid var(--border);
-            font-family: inherit;
-        }
-
-        .save-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        @media (max-width: 768px) {
-            .main-container { flex-direction: column; }
-            .preview-pane { display: none; }
-            .toolbar { display: none; }
-        }
+        .preview-wrapper { flex: 1; padding: 16px; background: var(--bg-primary); overflow: auto; }
+        .preview-content { max-width: 800px; margin: 0 auto; line-height: 1.8; font-size: 15px; font-family: monospace; }
+        .preview-content .line { display: block; }
+        .preview-content .h1 { font-size: 2em; font-weight: bold; margin: 0.5em 0; }
+        .preview-content .h2 { font-size: 1.5em; font-weight: bold; margin: 0.5em 0; }
+        .preview-content .h3 { font-size: 1.25em; font-weight: bold; margin: 0.5em 0; }
+        .preview-content .quote { border-left: 4px solid var(--accent); padding-left: 12px; color: var(--text-secondary); margin: 0.5em 0; }
+        .preview-content .code { background: var(--bg-secondary); padding: 2px 6px; border-radius: 4px; color: var(--accent); }
+        .preview-content .url { color: var(--accent); text-decoration: underline; }
+        .footer { background: var(--bg-secondary); padding: 8px 20px; font-size: 0.75rem; color: var(--text-muted); border-top: 1px solid var(--border); display: flex; justify-content: space-between; }
+        .footer kbd { background: var(--bg-primary); padding: 2px 5px; border-radius: 3px; margin: 0 2px; border: 1px solid var(--border); }
+        button { background: var(--accent); color: white; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+        button:hover { background: var(--accent); filter: brightness(1.1); }
+        .status { color: var(--text-secondary); font-size: 0.9rem; }
+        @media (max-width: 768px) { .main-container { flex-direction: column; } .preview-pane { display: none; } .toolbar { display: none; } }
     </style>
 </head>
 <body>
     <div class="header">
         <div class="header-left">
-            <h1><span>📝</span>wsx</h1>
+            <h1>📝 wsx</h1>
             <span class="note-name" id="noteNameDisplay"></span>
         </div>
-
         <div class="toolbar">
-            <button class="toolbar-btn" onclick="format('bold')" title="加粗 (Ctrl+B)"><b>B</b></button>
-            <button class="toolbar-btn" onclick="format('italic')" title="斜体 (Ctrl+I)"><i>I</i></button>
-            <button class="toolbar-btn" onclick="format('strike')" title="删除线 (Ctrl+D)"><s>S</s></button>
-            <button class="toolbar-btn" onclick="format('underline')" title="下划线 (Ctrl+U)"><u>U</u></button>
-
+            <button class="toolbar-btn" onclick="format('bold')" title="加粗"><b>B</b></button>
+            <button class="toolbar-btn" onclick="format('italic')" title="斜体"><i>I</i></button>
+            <button class="toolbar-btn" onclick="format('strike')" title="删除线"><s>S</s></button>
+            <button class="toolbar-btn" onclick="format('underline')" title="下划线"><u>U</u></button>
             <div class="toolbar-sep"></div>
-
-            <button class="toolbar-btn" onclick="format('h1')" title="标题1">H1</button>
-            <button class="toolbar-btn" onclick="format('h2')" title="标题2">H2</button>
-            <button class="toolbar-btn" onclick="format('h3')" title="标题3">H3</button>
-
+            <button class="toolbar-btn" onclick="format('h1')">H1</button>
+            <button class="toolbar-btn" onclick="format('h2')">H2</button>
+            <button class="toolbar-btn" onclick="format('h3')">H3</button>
             <div class="toolbar-sep"></div>
-
-            <button class="toolbar-btn" onclick="format('quote')" title="引用 (Ctrl+Q)">❝</button>
-            <button class="toolbar-btn" onclick="format('code')" title="代码 (Ctrl+`)">`code`</button>
+            <button class="toolbar-btn" onclick="format('quote')">❝</button>
+            <button class="toolbar-btn" onclick="format('code')">code</button>
         </div>
-
         <div class="header-right">
             <button class="theme-toggle" id="themeToggle">🌙 深色</button>
         </div>
@@ -298,14 +93,9 @@
         <div class="editor-pane">
             <div class="pane-header">✏️ 编辑</div>
             <div class="editor-wrapper">
-                <textarea
-                    id="editor"
-                    placeholder="在这里开始写作..."
-                    spellcheck="false"
-                ></textarea>
+                <textarea id="editor" placeholder="在这里开始写作..."></textarea>
             </div>
         </div>
-
         <div class="preview-pane">
             <div class="pane-header">👁️ 预览</div>
             <div class="preview-wrapper">
@@ -319,79 +109,55 @@
             <kbd>Ctrl</kbd>+<kbd>S</kbd> 保存 |
             <kbd>Ctrl</kbd>+<kbd>B</kbd> 加粗 |
             <kbd>Ctrl</kbd>+<kbd>I</kbd> 斜体 |
-            <kbd>Ctrl</kbd>+<kbd>U</kbd> 下划线 |
             <kbd>Ctrl</kbd>+<kbd>P</kbd> 切换预览
         </div>
-        <div class="save-status">
-            <span class="status" id="status">就绪</span>
-        </div>
+        <div><span class="status" id="status">就绪</span></div>
     </div>
 
     <script>
         const Parser = {
-            // 格式化标记定义
-            formats: {
-                bold: { start: '<b>', end: '</b>' },
-                italic: { start: '<i>', end: '</i>' },
-                strike: { start: '<s>', end: '</s>' },
-                underline: { start: '<u>', end: '</u>' },
-                code: { start: '<span class="code">', end: '</span>' },
-                quote: { start: '<span class="quote">', end: '</span>' },
-                h1: { start: '<span class="h1">', end: '</span>' },
-                h2: { start: '<span class="h2">', end: '</span>' },
-                h3: { start: '<span class="h3">', end: '</span>' }
-            },
-
             parse(text) {
                 if (!text) return '';
-
                 let html = text
-                    // HTML 转义（最先处理）
                     .replace(/&/g, '&amp;')
                     .replace(/</g, '&lt;')
-                    .replace(/>/g, '&gt;')
+                    .replace(/>/g, '&gt;');
 
-                    // 代码块
-                    .replace(/^=== (.+)$/gm, '<span class="h1">$1</span>')
-                    .replace(/^== (.+)$/gm, '<span class="h2">$1</span>')
-                    .replace(/^= (.+)$/gm, '<span class="h3">$1</span>')
-
-                    // 处理顺序：先斜体，再加粗（避免嵌套冲突）
-
-                    // 斜体 *text* (单个星号)
-                    .replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<i>$1</i>')
-
-                    // 加粗 **text**
-                    .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
-
-                    // 删除线 ~~text~~
-                    .replace(/~~([^~]+)~~/g, '<s>$1</s>')
-
-                    // 下划线 __text__
-                    .replace(/__([^_]+)__/g, '<u>$1</u>')
-
-                    // 引用 > text
-                    .replace(/^&gt; (.+)$/gm, '<span class="quote">$1</span>')
-
-                    // 行内代码 `text`
-                    .replace(/`([^`]+)`/g, '<span class="code">$1</span>')
-
-                    // URL [text](url)
-                    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="url" target="_blank">$1</a>');
-
-                // 处理每一行
+                // 行级处理
                 const lines = html.split('\n');
                 html = lines.map(line => {
-                    // 如果行已经是块级元素，不需要包裹
-                    if (line.startsWith('<span class="h') ||
-                        line.startsWith('<span class="quote')) {
-                        return '<span class="line">' + line + '</span>';
-                    }
-                    // 包裹在行容器中
-                    return '<span class="line">' + line + '</span>';
+                    if (line.startsWith('===')) return '<span class="h1 line">' + this.escapeHtml(line.slice(4)) + '</span>';
+                    if (line.startsWith('== ')) return '<span class="h2 line">' + this.escapeHtml(line.slice(3)) + '</span>';
+                    if (line.startsWith('= ')) return '<span class="h3 line">' + this.escapeHtml(line.slice(2)) + '</span>';
+                    if (line.startsWith('&gt;')) return '<span class="quote line">' + this.escapeHtml(line.slice(5)) + '</span>';
+                    return '<span class="line">' + this.parseInline(line) + '</span>';
                 }).join('\n');
-
                 return html;
+            },
+
+            parseInline(text) {
+                // 简单替换：代码 -> 加粗 -> 斜体 -> 删除线 -> 下划线
+                // 注意：这里不对已有 HTML 标签的内容进行处理
+                text = this.escapeHtml(text);
+
+                // 代码块 ``code``
+                text = text.replace(/``([^`]+)``/g, '<span class="code">$1</span>');
+                // 加粗 **text**
+                text = text.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
+                // 斜体 *text*（要确保前后不是 *）
+                text = text.replace(/(?<![^*])\*([^*]+)\*(?![^*])/g, '<i>$1</i>');
+                // 删除线 ~~text~~
+                text = text.replace(/~~([^~]+)~~/g, '<s>$1</s>');
+                // 下划线 __text__
+                text = text.replace(/__([^_]+)__/g, '<u>$1</u>');
+                // URL
+                text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="url" target="_blank">$1</a>');
+
+                return text;
+            },
+
+            escapeHtml(text) {
+                return text;
             }
         };
 
@@ -400,8 +166,6 @@
             hasChanges: false,
             isSaving: false,
             showPreview: true,
-
-            elements: {},
 
             init() {
                 this.elements = {
@@ -459,39 +223,16 @@
                 document.addEventListener('keydown', (e) => {
                     if (e.ctrlKey || e.metaKey) {
                         switch (e.key.toLowerCase()) {
-                            case 's':
-                                e.preventDefault();
-                                this.save();
-                                break;
-                            case 'b':
-                                e.preventDefault();
-                                this.insertFormat('bold');
-                                break;
-                            case 'i':
-                                e.preventDefault();
-                                this.insertFormat('italic');
-                                break;
-                            case 'u':
-                                e.preventDefault();
-                                this.insertFormat('underline');
-                                break;
-                            case 'd':
-                                e.preventDefault();
-                                this.insertFormat('strike');
-                                break;
-                            case 'p':
-                                e.preventDefault();
-                                this.togglePreview();
-                                break;
+                            case 's': e.preventDefault(); this.save(); break;
+                            case 'b': e.preventDefault(); this.wrapSelection('**', '**'); break;
+                            case 'i': e.preventDefault(); this.wrapSelection('*', '*'); break;
+                            case 'p': e.preventDefault(); this.togglePreview(); break;
                         }
                     }
                 });
 
                 window.addEventListener('beforeunload', (e) => {
-                    if (this.hasChanges) {
-                        e.preventDefault();
-                        e.returnValue = '';
-                    }
+                    if (this.hasChanges) { e.preventDefault(); e.returnValue = ''; }
                 });
             },
 
@@ -501,120 +242,53 @@
             },
 
             togglePreview() {
-                const previewPane = document.querySelector('.preview-pane');
                 this.showPreview = !this.showPreview;
-                previewPane.style.display = this.showPreview ? 'flex' : 'none';
+                document.querySelector('.preview-pane').style.display = this.showPreview ? 'flex' : 'none';
             },
 
-            // 插入格式化标签
-            insertFormat(type) {
+            wrapSelection(before, after) {
                 const editor = this.elements.editor;
                 const start = editor.selectionStart;
                 const end = editor.selectionEnd;
                 const text = editor.value;
-                const selected = text.substring(start, end);
+                const selected = text.substring(start, end) || '文字';
 
-                const format = Parser.formats[type];
-                if (!format) return;
-
-                const before = text.substring(0, start);
-                const after = text.substring(end);
-
-                // 对于块级元素，在行首插入
-                if (['h1', 'h2', 'h3', 'quote'].includes(type)) {
-                    // 找到当前行的开始
-                    let lineStart = before.lastIndexOf('\n') + 1;
-                    const lineEnd = after.indexOf('\n') === -1 ? text.length : end + after.indexOf('\n');
-
-                    const lineBefore = text.substring(0, lineStart);
-                    const lineContent = text.substring(lineStart, lineEnd);
-                    const lineAfter = text.substring(lineEnd);
-
-                    // 确定行的前缀
-                    let prefix = '';
-                    if (type === 'h1') prefix = '=== ';
-                    else if (type === 'h2') prefix = '== ';
-                    else if (type === 'h3') prefix = '= ';
-                    else if (type === 'quote') prefix = '> ';
-
-                    editor.value = lineBefore + prefix + lineContent + lineAfter;
-                    this.hasChanges = true;
-                    this.setStatus('未保存', '');
-                    this.updatePreview();
-                    return;
-                }
-
-                // 对于行内元素
-                editor.value = before + format.start + selected + format.end + after;
-                editor.selectionStart = start + format.start.length;
-                editor.selectionEnd = start + format.start.length + selected.length;
-
+                editor.value = text.substring(0, start) + before + selected + after + text.substring(end);
+                editor.selectionStart = start + before.length;
+                editor.selectionEnd = start + before.length + selected.length;
                 editor.focus();
+
                 this.hasChanges = true;
                 this.setStatus('未保存', '');
                 this.updatePreview();
             },
 
             async loadNote() {
-                if (!this.noteName) {
-                    this.setStatus('新建笔记', '');
-                    this.updatePreview();
-                    return;
-                }
-
+                if (!this.noteName) { this.setStatus('新建笔记', ''); this.updatePreview(); return; }
                 try {
                     const response = await fetch(`/api/note/${encodeURIComponent(this.noteName)}`);
-
-                    if (!response.ok) {
-                        if (response.status === 404) {
-                            this.setStatus('新建笔记', '');
-                            this.updatePreview();
-                            return;
-                        }
-                        throw new Error('加载失败');
-                    }
-
+                    if (!response.ok) { if (response.status === 404) { this.setStatus('新建笔记', ''); this.updatePreview(); return; } throw new Error(); }
                     const data = await response.json();
-
-                    if (data.content) {
-                        this.elements.editor.value = data.content;
-                        this.updatePreview();
-                    }
-
+                    if (data.content) { this.elements.editor.value = data.content; this.updatePreview(); }
                     this.setStatus('已加载', 'saved');
-                } catch (err) {
-                    this.setStatus('加载失败', 'error');
-                }
+                } catch (err) { this.setStatus('加载失败', 'error'); }
             },
 
             async save() {
                 if (this.isSaving || !this.hasChanges) return;
-
                 this.isSaving = true;
                 this.setStatus('保存中...', 'saving');
-
                 try {
                     const response = await fetch(`/api/note/${encodeURIComponent(this.noteName)}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ content: this.elements.editor.value })
                     });
-
-                    if (!response.ok) throw new Error('保存失败');
-
+                    if (!response.ok) throw new Error();
                     this.hasChanges = false;
                     this.setStatus('已保存 ✓', 'saved');
-
-                    setTimeout(() => {
-                        if (this.elements.status.textContent === '已保存 ✓') {
-                            this.setStatus('已保存', 'saved');
-                        }
-                    }, 2000);
-                } catch (err) {
-                    this.setStatus('保存失败', 'error');
-                } finally {
-                    this.isSaving = false;
-                }
+                    setTimeout(() => { if (this.elements.status.textContent === '已保存 ✓') this.setStatus('已保存', 'saved'); }, 2000);
+                } catch (err) { this.setStatus('保存失败', 'error'); }
+                finally { this.isSaving = false; }
             },
 
             setStatus(text, className) {
@@ -623,9 +297,11 @@
             }
         };
 
-        // 全局格式化函数
         function format(type) {
-            Editor.insertFormat(type);
+            const map = { bold: ['**', '**'], italic: ['*', '*'], strike: ['~~', '~~'], underline: ['__', '__'],
+                         h1: ['=== ', ''], h2: ['== ', ''], h3: ['= ', ''], quote: ['> ', ''], code: ['`', '`'] };
+            const [before, after] = map[type] || ['', ''];
+            Editor.wrapSelection(before, after);
         }
 
         document.addEventListener('DOMContentLoaded', () => Editor.init());

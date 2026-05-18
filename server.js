@@ -300,27 +300,25 @@ function getDefaultTemplate(name, content) {
             },
             parse(text) {
                 if (!text) return '';
-                let html = text
-                    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-                    // 处理顺序：先斜体，再加粗（避免嵌套冲突）
-                    .replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<i>$1</i>')
-                    .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
-                    .replace(/~~([^~]+)~~/g, '<s>$1</s>')
-                    .replace(/__([^_]+)__/g, '<u>$1</u>')
-                    .replace(/^=== (.+)$/gm, '<span class="h1">$1</span>')
-                    .replace(/^== (.+)$/gm, '<span class="h2">$1</span>')
-                    .replace(/^= (.+)$/gm, '<span class="h3">$1</span>')
-                    .replace(/^&gt; (.+)$/gm, '<span class="quote">$1</span>')
-                    .replace(/\x60([^\x60]+)\x60/g, '<span class="code">$1</span>')
-                    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="url" target="_blank">$1</a>');
+                let html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 const lines = html.split('\n');
                 html = lines.map(line => {
-                    if (line.startsWith('<span class="h') || line.startsWith('<span class="quote')) {
-                        return '<span class="line">' + line + '</span>';
-                    }
-                    return '<span class="line">' + line + '</span>';
+                    if (line.startsWith('===')) return '<span class="h1 line">' + line.slice(4) + '</span>';
+                    if (line.startsWith('== ')) return '<span class="h2 line">' + line.slice(3) + '</span>';
+                    if (line.startsWith('= ')) return '<span class="h3 line">' + line.slice(2) + '</span>';
+                    if (line.startsWith('&gt;')) return '<span class="quote line">' + line.slice(5) + '</span>';
+                    return '<span class="line">' + this.parseInline(line) + '</span>';
                 }).join('\n');
                 return html;
+            },
+            parseInline(text) {
+                text = text.replace(/\x60\x60([^\x60]+)\x60\x60/g, '<span class="code">$1</span>');
+                text = text.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
+                text = text.replace(/(?<![^*])\*([^*]+)\*(?![^*])/g, '<i>$1</i>');
+                text = text.replace(/~~([^~]+)~~/g, '<s>$1</s>');
+                text = text.replace(/__([^_]+)__/g, '<u>$1</u>');
+                text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="url" target="_blank">$1</a>');
+                return text;
             }
         };
 
