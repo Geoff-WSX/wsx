@@ -193,32 +193,48 @@ function getDefaultTemplate(name, content) {
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; display: flex; flex-direction: column; }
-        .header { background: var(--bg-header); padding: 15px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+        .header { background: var(--bg-header); padding: 12px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
         .header-left { display: flex; align-items: center; gap: 16px; }
-        .header h1 { font-size: 1.3rem; color: var(--accent); }
+        .header h1 { font-size: 1.2rem; color: var(--accent); }
         .note-name { color: var(--text-secondary); font-size: 0.9rem; }
+        .toolbar { display: flex; align-items: center; gap: 4px; }
+        .toolbar-btn { background: transparent; border: 1px solid transparent; color: var(--text-primary); padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 14px; font-family: inherit; }
+        .toolbar-btn:hover { background: var(--bg-secondary); border-color: var(--border); }
+        .toolbar-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+        .toolbar-sep { width: 1px; height: 20px; background: var(--border); margin: 0 8px; }
         .header-right { display: flex; align-items: center; gap: 12px; }
-        .theme-toggle { background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-primary); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+        .theme-toggle { background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-primary); padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }
         .theme-toggle:hover { background: var(--accent); color: white; }
         .main-container { flex: 1; display: flex; overflow: hidden; }
         .editor-pane, .preview-pane { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-        .pane-header { background: var(--bg-secondary); padding: 10px 20px; font-size: 0.85rem; color: var(--text-secondary); border-bottom: 1px solid var(--border); font-weight: 500; }
-        .editor-wrapper { flex: 1; padding: 20px; background: var(--bg-editor); overflow: auto; }
-        textarea { width: 100%; height: 100%; min-height: calc(100vh - 180px); background: transparent; border: none; color: var(--text-primary); font-size: 16px; line-height: 1.8; resize: none; font-family: monospace; }
+        .pane-header { background: var(--bg-secondary); padding: 8px 16px; font-size: 0.8rem; color: var(--text-secondary); border-bottom: 1px solid var(--border); }
+        .editor-wrapper { flex: 1; padding: 16px; background: var(--bg-editor); overflow: auto; }
+        textarea { width: 100%; height: 100%; min-height: calc(100vh - 140px); background: transparent; border: none; color: var(--text-primary); font-size: 15px; line-height: 1.8; resize: none; font-family: monospace; }
         textarea:focus { outline: none; }
-        .preview-wrapper { flex: 1; padding: 20px; background: var(--bg-primary); overflow: auto; }
-        .preview-content { max-width: 800px; margin: 0 auto; line-height: 1.8; font-size: 16px; white-space: pre-wrap; word-wrap: break-word; font-family: monospace; }
-        .toolbar { background: var(--bg-header); padding: 12px 24px; display: flex; align-items: center; gap: 12px; border-top: 1px solid var(--border); }
+        .preview-wrapper { flex: 1; padding: 16px; background: var(--bg-primary); overflow: auto; }
+        .preview-content { max-width: 800px; margin: 0 auto; line-height: 1.8; font-size: 15px; font-family: monospace; white-space: pre-wrap; word-wrap: break-word; }
+        .preview-content .bold { font-weight: bold; }
+        .preview-content .italic { font-style: italic; }
+        .preview-content .strike { text-decoration: line-through; }
+        .preview-content .underline { text-decoration: underline; }
+        .preview-content .h1 { font-size: 2em; font-weight: bold; margin: 0.5em 0; display: block; }
+        .preview-content .h2 { font-size: 1.5em; font-weight: bold; margin: 0.5em 0; display: block; }
+        .preview-content .h3 { font-size: 1.25em; font-weight: bold; margin: 0.5em 0; display: block; }
+        .preview-content .quote { border-left: 4px solid var(--accent); padding-left: 12px; color: var(--text-secondary); margin: 0.5em 0; display: block; }
+        .preview-content .code { background: var(--bg-secondary); padding: 2px 6px; border-radius: 4px; font-family: monospace; color: var(--accent); }
+        .preview-content .url { color: var(--accent); text-decoration: underline; }
+        .preview-content .line { display: block; margin: 0.25em 0; }
+        .footer { background: var(--bg-secondary); padding: 8px 20px; font-size: 0.75rem; color: var(--text-muted); border-top: 1px solid var(--border); display: flex; justify-content: space-between; }
+        .footer kbd { background: var(--bg-primary); padding: 2px 5px; border-radius: 3px; margin: 0 2px; border: 1px solid var(--border); font-family: inherit; }
+        .save-status { display: flex; align-items: center; gap: 8px; }
         button { background: var(--accent); color: white; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; }
         button:hover { background: var(--accent); filter: brightness(1.1); }
         button:disabled { background: var(--text-muted); cursor: not-allowed; }
-        .status { color: var(--text-secondary); font-size: 0.9rem; margin-left: auto; }
+        .status { color: var(--text-secondary); font-size: 0.9rem; }
         .status.saving { color: #f39c12; }
         .status.saved { color: #27ae60; }
         .status.error { color: #e74c3c; }
-        .shortcuts { background: var(--bg-secondary); padding: 8px 20px; font-size: 0.8rem; color: var(--text-muted); border-top: 1px solid var(--border); }
-        .shortcuts kbd { background: var(--bg-primary); padding: 2px 6px; border-radius: 4px; margin: 0 2px; border: 1px solid var(--border); }
-        @media (max-width: 768px) { .main-container { flex-direction: column; } .preview-pane { display: none; } }
+        @media (max-width: 768px) { .main-container { flex-direction: column; } .preview-pane { display: none; } .toolbar { display: none; } }
     </style>
 </head>
 <body>
@@ -227,8 +243,21 @@ function getDefaultTemplate(name, content) {
             <h1>📝 wsx</h1>
             <span class="note-name">${escapeHtml(name)}</span>
         </div>
+        <div class="toolbar">
+            <button class="toolbar-btn" onclick="format('bold')" title="加粗"><b>B</b></button>
+            <button class="toolbar-btn" onclick="format('italic')" title="斜体"><i>I</i></button>
+            <button class="toolbar-btn" onclick="format('strike')" title="删除线"><s>S</s></button>
+            <button class="toolbar-btn" onclick="format('underline')" title="下划线"><u>U</u></button>
+            <div class="toolbar-sep"></div>
+            <button class="toolbar-btn" onclick="format('h1')">H1</button>
+            <button class="toolbar-btn" onclick="format('h2')">H2</button>
+            <button class="toolbar-btn" onclick="format('h3')">H3</button>
+            <div class="toolbar-sep"></div>
+            <button class="toolbar-btn" onclick="format('quote')">❝</button>
+            <button class="toolbar-btn" onclick="format('code')">code</button>
+        </div>
         <div class="header-right">
-            <button class="theme-toggle" id="themeToggle">🌙 深色模式</button>
+            <button class="theme-toggle" id="themeToggle">🌙 深色</button>
         </div>
     </div>
     <div class="main-container">
@@ -245,12 +274,56 @@ function getDefaultTemplate(name, content) {
             </div>
         </div>
     </div>
-    <div class="shortcuts"><kbd>Ctrl</kbd>+<kbd>S</kbd> 保存 | <kbd>Ctrl</kbd>+<kbd>P</kbd> 切换预览</div>
-    <div class="toolbar">
-        <button id="saveBtn">💾 保存</button>
-        <span class="status" id="status">就绪</span>
+    <div class="footer">
+        <div>
+            <kbd>Ctrl</kbd>+<kbd>S</kbd> 保存 |
+            <kbd>Ctrl</kbd>+<kbd>B</kbd> 加粗 |
+            <kbd>Ctrl</kbd>+<kbd>I</kbd> 斜体 |
+            <kbd>Ctrl</kbd>+<kbd>U</kbd> 下划线
+        </div>
+        <div class="save-status">
+            <span class="status" id="status">就绪</span>
+        </div>
     </div>
     <script>
+        const Parser = {
+            formats: {
+                bold: { start: '<b>', end: '</b>' },
+                italic: { start: '<i>', end: '</i>' },
+                strike: { start: '<s>', end: '</s>' },
+                underline: { start: '<u>', end: '</u>' },
+                code: { start: '<span class="code">', end: '</span>' },
+                quote: { start: '<span class="quote">', end: '</span>' },
+                h1: { start: '<span class="h1">', end: '</span>' },
+                h2: { start: '<span class="h2">', end: '</span>' },
+                h3: { start: '<span class="h3">', end: '</span>' }
+            },
+            parse(text) {
+                if (!text) return '';
+                let html = text
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                    .replace(/``([\\s\\S]*?)``/g, '<span class="code">$1</span>')
+                    .replace(/^=== (.+)$/gm, '<span class="h1">$1</span>')
+                    .replace(/^== (.+)$/gm, '<span class="h2">$1</span>')
+                    .replace(/^= (.+)$/gm, '<span class="h3">$1</span>')
+                    .replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>')
+                    .replace(/(?<!\\*)\\*(?!\\*)(.+?)(?<!\\*)\\*(?!\\*)/g, '<i>$1</i>')
+                    .replace(/~~(.+?)~~/g, '<s>$1</s>')
+                    .replace(/__(.+?)__/g, '<u>$1</u>')
+                    .replace(/^> (.+)$/gm, '<span class="quote">$1</span>')
+                    .replace(/\\`([^\\`]+)\\`/g, '<span class="code">$1</span>')
+                    .replace(/\\[([^\\]]+)\\]\\(([^)]+)\\)/g, '<a href="$2" class="url" target="_blank">$1</a>');
+                const lines = html.split('\\n');
+                html = lines.map(line => {
+                    if (line.startsWith('<span class="h') || line.startsWith('<span class="quote')) {
+                        return '<span class="line">' + line + '</span>';
+                    }
+                    return '<span class="line">' + line + '</span>';
+                }).join('\\n');
+                return html;
+            }
+        };
+
         const noteName = '${escapeHtml(name)}';
         const noteContent = '${escapeHtml(content)}';
         let hasChanges = false, isSaving = false, showPreview = true;
@@ -258,14 +331,13 @@ function getDefaultTemplate(name, content) {
         const editor = document.getElementById('editor');
         const preview = document.getElementById('preview');
         const status = document.getElementById('status');
-        const saveBtn = document.getElementById('saveBtn');
         const themeToggle = document.getElementById('themeToggle');
 
         function loadTheme() {
             const theme = localStorage.getItem('wsx-theme') || 'light';
             if (theme === 'dark') {
                 document.body.setAttribute('data-theme', 'dark');
-                themeToggle.textContent = '☀️ 浅色模式';
+                themeToggle.textContent = '☀️ 浅色';
             }
         }
 
@@ -274,54 +346,63 @@ function getDefaultTemplate(name, content) {
             if (isDark) {
                 document.body.removeAttribute('data-theme');
                 localStorage.setItem('wsx-theme', 'light');
-                themeToggle.textContent = '🌙 深色模式';
+                themeToggle.textContent = '🌙 深色';
             } else {
                 document.body.setAttribute('data-theme', 'dark');
                 localStorage.setItem('wsx-theme', 'dark');
-                themeToggle.textContent = '☀️ 浅色模式';
+                themeToggle.textContent = '☀️ 浅色';
             }
         }
 
-        function updatePreview() {
-            preview.textContent = editor.value;
-        }
+        function updatePreview() { preview.innerHTML = Parser.parse(editor.value); }
 
-        function togglePreview() {
-            showPreview = !showPreview;
-            document.querySelector('.preview-pane').style.display = showPreview ? 'flex' : 'none';
+        function togglePreview() { showPreview = !showPreview; document.querySelector('.preview-pane').style.display = showPreview ? 'flex' : 'none'; }
+
+        function insertFormat(type) {
+            const format = Parser.formats[type];
+            if (!format) return;
+            if (['h1', 'h2', 'h3', 'quote'].includes(type)) {
+                let lineStart = editor.value.substring(0, editor.selectionStart).lastIndexOf('\\n') + 1;
+                let linePrefix = type === 'h1' ? '=== ' : type === 'h2' ? '== ' : type === 'h3' ? '= ' : '> ';
+                editor.value = editor.value.substring(0, lineStart) + linePrefix + editor.value.substring(lineStart);
+                hasChanges = true; status.textContent = '未保存'; status.className = 'status'; updatePreview();
+                return;
+            }
+            const start = editor.selectionStart, end = editor.selectionEnd;
+            const selected = editor.value.substring(start, end);
+            editor.value = editor.value.substring(0, start) + format.start + selected + format.end + editor.value.substring(end);
+            editor.selectionStart = start + format.start.length;
+            editor.selectionEnd = start + format.start.length + selected.length;
+            editor.focus();
+            hasChanges = true; status.textContent = '未保存'; status.className = 'status'; updatePreview();
         }
 
         async function save() {
             if (isSaving || !hasChanges) return;
             isSaving = true;
-            saveBtn.disabled = true;
-            status.textContent = '保存中...';
-            status.className = 'status saving';
+            status.textContent = '保存中...'; status.className = 'status saving';
             try {
                 const response = await fetch('/api/note/' + encodeURIComponent(noteName), {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ content: editor.value })
                 });
                 if (!response.ok) throw new Error('保存失败');
                 hasChanges = false;
-                status.textContent = '已保存 ✓';
-                status.className = 'status saved';
-            } catch (err) {
-                status.textContent = '保存失败';
-                status.className = 'status error';
-            } finally {
-                isSaving = false;
-                saveBtn.disabled = false;
-            }
+                status.textContent = '已保存 ✓'; status.className = 'status saved';
+            } catch (err) { status.textContent = '保存失败'; status.className = 'status error'; }
+            finally { isSaving = false; }
         }
 
+        function format(type) { insertFormat(type); }
+
         editor.addEventListener('input', () => { hasChanges = true; status.textContent = '未保存'; status.className = 'status'; updatePreview(); });
-        saveBtn.addEventListener('click', save);
         themeToggle.addEventListener('click', toggleTheme);
         document.addEventListener('keydown', (e) => {
             if (e.ctrlKey || e.metaKey) {
                 if (e.key.toLowerCase() === 's') { e.preventDefault(); save(); }
+                if (e.key.toLowerCase() === 'b') { e.preventDefault(); insertFormat('bold'); }
+                if (e.key.toLowerCase() === 'i') { e.preventDefault(); insertFormat('italic'); }
+                if (e.key.toLowerCase() === 'u') { e.preventDefault(); insertFormat('underline'); }
                 if (e.key.toLowerCase() === 'p') { e.preventDefault(); togglePreview(); }
             }
         });

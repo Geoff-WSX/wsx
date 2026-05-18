@@ -47,7 +47,7 @@
 
         .header {
             background: var(--bg-header);
-            padding: 15px 24px;
+            padding: 12px 20px;
             border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
@@ -62,7 +62,7 @@
         }
 
         .header h1 {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             color: var(--accent);
         }
 
@@ -71,6 +71,42 @@
         .note-name {
             color: var(--text-secondary);
             font-size: 0.9rem;
+        }
+
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .toolbar-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-primary);
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.15s;
+        }
+
+        .toolbar-btn:hover {
+            background: var(--bg-secondary);
+            border-color: var(--border);
+        }
+
+        .toolbar-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .toolbar-sep {
+            width: 1px;
+            height: 20px;
+            background: var(--border);
+            margin: 0 8px;
         }
 
         .header-right {
@@ -83,10 +119,10 @@
             background: var(--bg-secondary);
             border: 1px solid var(--border);
             color: var(--text-primary);
-            padding: 8px 16px;
-            border-radius: 6px;
+            padding: 6px 12px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             transition: all 0.2s;
         }
 
@@ -111,8 +147,8 @@
 
         .pane-header {
             background: var(--bg-secondary);
-            padding: 10px 20px;
-            font-size: 0.85rem;
+            padding: 8px 16px;
+            font-size: 0.8rem;
             color: var(--text-secondary);
             border-bottom: 1px solid var(--border);
             font-weight: 500;
@@ -121,7 +157,7 @@
 
         .editor-wrapper {
             flex: 1;
-            padding: 20px;
+            padding: 16px;
             background: var(--bg-editor);
             overflow: auto;
             transition: background 0.3s;
@@ -130,11 +166,11 @@
         textarea {
             width: 100%;
             height: 100%;
-            min-height: calc(100vh - 180px);
+            min-height: calc(100vh - 140px);
             background: transparent;
             border: none;
             color: var(--text-primary);
-            font-size: 16px;
+            font-size: 15px;
             line-height: 1.8;
             resize: none;
             font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
@@ -146,7 +182,7 @@
 
         .preview-wrapper {
             flex: 1;
-            padding: 20px;
+            padding: 16px;
             background: var(--bg-primary);
             overflow: auto;
             transition: background 0.3s;
@@ -156,90 +192,105 @@
             max-width: 800px;
             margin: 0 auto;
             line-height: 1.8;
-            font-size: 16px;
+            font-size: 15px;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
             white-space: pre-wrap;
             word-wrap: break-word;
-            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
         }
 
-        .toolbar {
-            background: var(--bg-header);
-            padding: 12px 24px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border-top: 1px solid var(--border);
-            transition: background 0.3s, border-color 0.3s;
-        }
+        /* 格式化样式 */
+        .preview-content .bold { font-weight: bold; }
+        .preview-content .italic { font-style: italic; }
+        .preview-content .strike { text-decoration: line-through; }
+        .preview-content .underline { text-decoration: underline; }
 
-        button {
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background 0.2s;
-        }
+        .preview-content .h1 { font-size: 2em; font-weight: bold; margin: 0.5em 0; display: block; }
+        .preview-content .h2 { font-size: 1.5em; font-weight: bold; margin: 0.5em 0; display: block; }
+        .preview-content .h3 { font-size: 1.25em; font-weight: bold; margin: 0.5em 0; display: block; }
 
-        button:hover { background: var(--accent-hover); }
-        button:disabled { background: var(--text-muted); cursor: not-allowed; }
-
-        .status {
+        .preview-content .quote {
+            border-left: 4px solid var(--accent);
+            padding-left: 12px;
             color: var(--text-secondary);
-            font-size: 0.9rem;
-            margin-left: auto;
+            margin: 0.5em 0;
+            display: block;
         }
-        .status.saving { color: #f39c12; }
-        .status.saved { color: #27ae60; }
-        .status.error { color: #e74c3c; }
 
-        .error-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            background: #e74c3c;
-            color: white;
-            padding: 12px 24px;
-            text-align: center;
-            display: none;
-            z-index: 1000;
-        }
-        .error-overlay.show { display: block; }
-
-        .shortcuts {
+        .preview-content .code {
             background: var(--bg-secondary);
-            padding: 8px 20px;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            border-top: 1px solid var(--border);
-            transition: background 0.3s, border-color 0.3s;
-        }
-
-        .shortcuts kbd {
-            background: var(--bg-primary);
             padding: 2px 6px;
             border-radius: 4px;
+            font-family: monospace;
+            color: var(--accent);
+        }
+
+        .preview-content .url {
+            color: var(--accent);
+            text-decoration: underline;
+        }
+
+        .preview-content .line { display: block; margin: 0.25em 0; }
+
+        .footer {
+            background: var(--bg-secondary);
+            padding: 8px 20px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        .footer kbd {
+            background: var(--bg-primary);
+            padding: 2px 5px;
+            border-radius: 3px;
             margin: 0 2px;
             border: 1px solid var(--border);
+            font-family: inherit;
+        }
+
+        .save-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         @media (max-width: 768px) {
             .main-container { flex-direction: column; }
             .preview-pane { display: none; }
+            .toolbar { display: none; }
         }
     </style>
 </head>
 <body>
-    <div class="error-overlay" id="errorOverlay"></div>
-
     <div class="header">
         <div class="header-left">
             <h1><span>📝</span>wsx</h1>
             <span class="note-name" id="noteNameDisplay"></span>
         </div>
+
+        <div class="toolbar">
+            <button class="toolbar-btn" onclick="format('bold')" title="加粗 (Ctrl+B)"><b>B</b></button>
+            <button class="toolbar-btn" onclick="format('italic')" title="斜体 (Ctrl+I)"><i>I</i></button>
+            <button class="toolbar-btn" onclick="format('strike')" title="删除线 (Ctrl+D)"><s>S</s></button>
+            <button class="toolbar-btn" onclick="format('underline')" title="下划线 (Ctrl+U)"><u>U</u></button>
+
+            <div class="toolbar-sep"></div>
+
+            <button class="toolbar-btn" onclick="format('h1')" title="标题1">H1</button>
+            <button class="toolbar-btn" onclick="format('h2')" title="标题2">H2</button>
+            <button class="toolbar-btn" onclick="format('h3')" title="标题3">H3</button>
+
+            <div class="toolbar-sep"></div>
+
+            <button class="toolbar-btn" onclick="format('quote')" title="引用 (Ctrl+Q)">❝</button>
+            <button class="toolbar-btn" onclick="format('code')" title="代码 (Ctrl+`)">`code`</button>
+        </div>
+
         <div class="header-right">
-            <button class="theme-toggle" id="themeToggle">🌙 深色模式</button>
+            <button class="theme-toggle" id="themeToggle">🌙 深色</button>
         </div>
     </div>
 
@@ -263,33 +314,105 @@
         </div>
     </div>
 
-    <div class="shortcuts">
-        <kbd>Ctrl</kbd>+<kbd>S</kbd> 保存 | <kbd>Ctrl</kbd>+<kbd>P</kbd> 切换预览
-    </div>
-
-    <div class="toolbar">
-        <button id="saveBtn">💾 保存</button>
-        <span class="status" id="status">就绪</span>
+    <div class="footer">
+        <div>
+            <kbd>Ctrl</kbd>+<kbd>S</kbd> 保存 |
+            <kbd>Ctrl</kbd>+<kbd>B</kbd> 加粗 |
+            <kbd>Ctrl</kbd>+<kbd>I</kbd> 斜体 |
+            <kbd>Ctrl</kbd>+<kbd>U</kbd> 下划线 |
+            <kbd>Ctrl</kbd>+<kbd>P</kbd> 切换预览
+        </div>
+        <div class="save-status">
+            <span class="status" id="status">就绪</span>
+        </div>
     </div>
 
     <script>
+        const Parser = {
+            // 格式化标记定义
+            formats: {
+                bold: { start: '<b>', end: '</b>' },
+                italic: { start: '<i>', end: '</i>' },
+                strike: { start: '<s>', end: '</s>' },
+                underline: { start: '<u>', end: '</u>' },
+                code: { start: '<span class="code">', end: '</span>' },
+                quote: { start: '<span class="quote">', end: '</span>' },
+                h1: { start: '<span class="h1">', end: '</span>' },
+                h2: { start: '<span class="h2">', end: '</span>' },
+                h3: { start: '<span class="h3">', end: '</span>' }
+            },
+
+            parse(text) {
+                if (!text) return '';
+
+                let html = text
+                    // HTML 转义（最先处理）
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+
+                    // 代码块
+                    .replace(/``([\s\S]*?)``/g, '<span class="code">$1</span>')
+
+                    // 标题（必须在加粗之前处理）
+                    .replace(/^=== (.+)$/gm, '<span class="h1">$1</span>')
+                    .replace(/^== (.+)$/gm, '<span class="h2">$1</span>')
+                    .replace(/^= (.+)$/gm, '<span class="h3">$1</span>')
+
+                    // 加粗 **text**
+                    .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+
+                    // 斜体 *text*
+                    .replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '<i>$1</i>')
+
+                    // 删除线 ~~text~~
+                    .replace(/~~(.+?)~~/g, '<s>$1</s>')
+
+                    // 下划线 __text__
+                    .replace(/__(.+?)__/g, '<u>$1</u>')
+
+                    // 引用 > text
+                    .replace(/^> (.+)$/gm, '<span class="quote">$1</span>')
+
+                    // 行内代码 `text`
+                    .replace(/`([^`]+)`/g, '<span class="code">$1</span>')
+
+                    // URL [text](url)
+                    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="url" target="_blank">$1</a>');
+
+                // 处理每一行
+                const lines = html.split('\n');
+                html = lines.map(line => {
+                    // 如果行已经是块级元素，不需要包裹
+                    if (line.startsWith('<span class="h') ||
+                        line.startsWith('<span class="quote')) {
+                        return '<span class="line">' + line + '</span>';
+                    }
+                    // 包裹在行容器中
+                    return '<span class="line">' + line + '</span>';
+                }).join('\n');
+
+                return html;
+            }
+        };
+
         const Editor = {
             noteName: '',
             hasChanges: false,
             isSaving: false,
             showPreview: true,
 
-            elements: {
-                editor: document.getElementById('editor'),
-                preview: document.getElementById('preview'),
-                status: document.getElementById('status'),
-                noteNameDisplay: document.getElementById('noteNameDisplay'),
-                saveBtn: document.getElementById('saveBtn'),
-                errorOverlay: document.getElementById('errorOverlay'),
-                themeToggle: document.getElementById('themeToggle')
-            },
+            elements: {},
 
             init() {
+                this.elements = {
+                    editor: document.getElementById('editor'),
+                    preview: document.getElementById('preview'),
+                    status: document.getElementById('status'),
+                    noteNameDisplay: document.getElementById('noteNameDisplay'),
+                    themeToggle: document.getElementById('themeToggle')
+                };
+
                 this.noteName = this.getNoteNameFromUrl();
                 this.elements.noteNameDisplay.textContent = this.noteName || '新建笔记';
                 document.title = this.noteName || 'wsx 笔记编辑器';
@@ -308,7 +431,7 @@
                 const theme = localStorage.getItem('wsx-theme') || 'light';
                 if (theme === 'dark') {
                     document.body.setAttribute('data-theme', 'dark');
-                    this.elements.themeToggle.textContent = '☀️ 浅色模式';
+                    this.elements.themeToggle.textContent = '☀️ 浅色';
                 }
             },
 
@@ -317,11 +440,11 @@
                 if (isDark) {
                     document.body.removeAttribute('data-theme');
                     localStorage.setItem('wsx-theme', 'light');
-                    this.elements.themeToggle.textContent = '🌙 深色模式';
+                    this.elements.themeToggle.textContent = '🌙 深色';
                 } else {
                     document.body.setAttribute('data-theme', 'dark');
                     localStorage.setItem('wsx-theme', 'dark');
-                    this.elements.themeToggle.textContent = '☀️ 浅色模式';
+                    this.elements.themeToggle.textContent = '☀️ 浅色';
                 }
             },
 
@@ -332,7 +455,6 @@
                     this.updatePreview();
                 });
 
-                this.elements.saveBtn.addEventListener('click', () => this.save());
                 this.elements.themeToggle.addEventListener('click', () => this.toggleTheme());
 
                 document.addEventListener('keydown', (e) => {
@@ -341,6 +463,22 @@
                             case 's':
                                 e.preventDefault();
                                 this.save();
+                                break;
+                            case 'b':
+                                e.preventDefault();
+                                this.insertFormat('bold');
+                                break;
+                            case 'i':
+                                e.preventDefault();
+                                this.insertFormat('italic');
+                                break;
+                            case 'u':
+                                e.preventDefault();
+                                this.insertFormat('underline');
+                                break;
+                            case 'd':
+                                e.preventDefault();
+                                this.insertFormat('strike');
                                 break;
                             case 'p':
                                 e.preventDefault();
@@ -360,14 +498,62 @@
 
             updatePreview() {
                 const content = this.elements.editor.value;
-                // 纯文本显示，HTML 转义
-                this.elements.preview.textContent = content;
+                this.elements.preview.innerHTML = Parser.parse(content);
             },
 
             togglePreview() {
                 const previewPane = document.querySelector('.preview-pane');
                 this.showPreview = !this.showPreview;
                 previewPane.style.display = this.showPreview ? 'flex' : 'none';
+            },
+
+            // 插入格式化标签
+            insertFormat(type) {
+                const editor = this.elements.editor;
+                const start = editor.selectionStart;
+                const end = editor.selectionEnd;
+                const text = editor.value;
+                const selected = text.substring(start, end);
+
+                const format = Parser.formats[type];
+                if (!format) return;
+
+                const before = text.substring(0, start);
+                const after = text.substring(end);
+
+                // 对于块级元素，在行首插入
+                if (['h1', 'h2', 'h3', 'quote'].includes(type)) {
+                    // 找到当前行的开始
+                    let lineStart = before.lastIndexOf('\n') + 1;
+                    const lineEnd = after.indexOf('\n') === -1 ? text.length : end + after.indexOf('\n');
+
+                    const lineBefore = text.substring(0, lineStart);
+                    const lineContent = text.substring(lineStart, lineEnd);
+                    const lineAfter = text.substring(lineEnd);
+
+                    // 确定行的前缀
+                    let prefix = '';
+                    if (type === 'h1') prefix = '=== ';
+                    else if (type === 'h2') prefix = '== ';
+                    else if (type === 'h3') prefix = '= ';
+                    else if (type === 'quote') prefix = '> ';
+
+                    editor.value = lineBefore + prefix + lineContent + lineAfter;
+                    this.hasChanges = true;
+                    this.setStatus('未保存', '');
+                    this.updatePreview();
+                    return;
+                }
+
+                // 对于行内元素
+                editor.value = before + format.start + selected + format.end + after;
+                editor.selectionStart = start + format.start.length;
+                editor.selectionEnd = start + format.start.length + selected.length;
+
+                editor.focus();
+                this.hasChanges = true;
+                this.setStatus('未保存', '');
+                this.updatePreview();
             },
 
             async loadNote() {
@@ -398,7 +584,6 @@
 
                     this.setStatus('已加载', 'saved');
                 } catch (err) {
-                    this.showError('加载失败: ' + err.message);
                     this.setStatus('加载失败', 'error');
                 }
             },
@@ -407,7 +592,6 @@
                 if (this.isSaving || !this.hasChanges) return;
 
                 this.isSaving = true;
-                this.elements.saveBtn.disabled = true;
                 this.setStatus('保存中...', 'saving');
 
                 try {
@@ -417,10 +601,7 @@
                         body: JSON.stringify({ content: this.elements.editor.value })
                     });
 
-                    if (!response.ok) {
-                        const error = await response.json();
-                        throw new Error(error.error || '保存失败');
-                    }
+                    if (!response.ok) throw new Error('保存失败');
 
                     this.hasChanges = false;
                     this.setStatus('已保存 ✓', 'saved');
@@ -431,29 +612,24 @@
                         }
                     }, 2000);
                 } catch (err) {
-                    this.showError('保存失败: ' + err.message);
                     this.setStatus('保存失败', 'error');
                 } finally {
                     this.isSaving = false;
-                    this.elements.saveBtn.disabled = false;
                 }
             },
 
             setStatus(text, className) {
                 this.elements.status.textContent = text;
                 this.elements.status.className = 'status ' + className;
-            },
-
-            showError(message) {
-                this.elements.errorOverlay.textContent = message;
-                this.elements.errorOverlay.classList.add('show');
-                setTimeout(() => {
-                    this.elements.errorOverlay.classList.remove('show');
-                }, 3000);
             }
         };
 
-        document.addEventListener('DOMContentLoaded', () => { Editor.init(); });
+        // 全局格式化函数
+        function format(type) {
+            Editor.insertFormat(type);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => Editor.init());
     </script>
 </body>
 </html>
