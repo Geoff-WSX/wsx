@@ -302,8 +302,9 @@ function getDefaultTemplate(name, content) {
                 if (!text) return '';
                 let html = text
                     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-                    .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
+                    // 处理顺序：先斜体，再加粗（避免嵌套冲突）
                     .replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<i>$1</i>')
+                    .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
                     .replace(/~~([^~]+)~~/g, '<s>$1</s>')
                     .replace(/__([^_]+)__/g, '<u>$1</u>')
                     .replace(/^=== (.+)$/gm, '<span class="h1">$1</span>')
