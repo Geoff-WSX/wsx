@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>wsx 笔记编辑器</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: #16213e;
+            padding: 20px 30px;
+            border-bottom: 1px solid #0f3460;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            color: #e94560;
+        }
+
+        .header h1 span {
+            margin-right: 10px;
+        }
+
+        .note-name {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .container {
+            flex: 1;
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .editor-wrapper {
+            width: 100%;
+            max-width: 900px;
+            background: #16213e;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        textarea {
+            width: 100%;
+            height: calc(100vh - 250px);
+            background: transparent;
+            border: none;
+            color: #eee;
+            font-size: 16px;
+            line-height: 1.8;
+            resize: none;
+            font-family: inherit;
+        }
+
+        textarea:focus {
+            outline: none;
+        }
+
+        textarea::placeholder {
+            color: #555;
+        }
+
+        .toolbar {
+            background: #16213e;
+            padding: 15px 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-top: 1px solid #0f3460;
+        }
+
+        button {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #ff6b6b;
+        }
+
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+
+        .status {
+            color: #888;
+            font-size: 0.9rem;
+            margin-left: auto;
+        }
+
+        .status.saving {
+            color: #f39c12;
+        }
+
+        .status.saved {
+            color: #27ae60;
+        }
+
+        .status.error {
+            color: #e74c3c;
+        }
+
+        .shortcuts {
+            background: #0f3460;
+            padding: 10px 20px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .shortcuts kbd {
+            background: #16213e;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin: 0 3px;
+        }
+
+        .error-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #e74c3c;
+            color: white;
+            padding: 15px 30px;
+            text-align: center;
+            display: none;
+        }
+
+        .error-overlay.show {
+            display: block;
+        }
+
+        .welcome {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888;
+        }
+
+        .welcome h2 {
+            color: #eee;
+            margin-bottom: 15px;
+        }
+
+        .welcome p {
+            margin-bottom: 10px;
+        }
+
+        .welcome code {
+            background: #0f3460;
+            padding: 3px 8px;
+            border-radius: 4px;
+            color: #e94560;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-overlay" id="errorOverlay"></div>
+
+    <div class="header">
+        <h1><span>📝</span>wsx 笔记编辑器</h1>
+        <span class="note-name" id="noteNameDisplay"></span>
+    </div>
+
+    <div class="container">
+        <div class="editor-wrapper">
+            <textarea
+                id="editor"
+                placeholder="在这里开始写作..."
+                spellcheck="false"
+            ></textarea>
+        </div>
+    </div>
+
+    <div class="shortcuts">
+        <kbd>Ctrl</kbd> + <kbd>S</kbd> 保存 | <kbd>Ctrl</kbd> + <kbd>B</kbd> 加粗 | <kbd>Ctrl</kbd> + <kbd>I</kbd> 斜体
+    </div>
+
+    <div class="toolbar">
+        <button id="saveBtn" onclick="saveNote()">💾 保存</button>
+        <span class="status" id="status">就绪</span>
+    </div>
+
+    <script>
+        // 笔记编辑器主模块
+        const Editor = {
+            noteName: '',
+            hasChanges: false,
+            isSaving: false,
+
+            elements: {
+                editor: document.getElementById('editor'),
+                status: document.getElementById('status'),
+                noteNameDisplay: document.getElementById('noteNameDisplay'),
+                saveBtn: document.getElementById('saveBtn'),
+                errorOverlay: document.getElementById('errorOverlay')
+            },
+
+            init() {
+                this.noteName = this.getNoteNameFromUrl();
+                this.elements.noteNameDisplay.textContent = this.noteName || '新建笔记';
+                document.title = this.noteName || 'wsx 笔记编辑器';
+
+                this.bindEvents();
+                this.loadNote();
+            },
+
+            getNoteNameFromUrl() {
+                const params = new URLSearchParams(window.location.search);
+                return params.get('note') ? decodeURIComponent(params.get('note')) : '';
+            },
+
+            bindEvents() {
+                // 输入事件
+                this.elements.editor.addEventListener('input', () => {
+                    this.hasChanges = true;
+                    this.setStatus('未保存', '');
+                });
+
+                // 键盘快捷键
+                document.addEventListener('keydown', (e) => {
+                    if (e.ctrlKey || e.metaKey) {
+                        switch (e.key.toLowerCase()) {
+                            case 's':
+                                e.preventDefault();
+                                this.save();
+                                break;
+                            case 'b':
+                                e.preventDefault();
+                                this.wrapSelection('**', '**');
+                                break;
+                            case 'i':
+                                e.preventDefault();
+                                this.wrapSelection('*', '*');
+                                break;
+                        }
+                    }
+                });
+
+                // 窗口关闭提示
+                window.addEventListener('beforeunload', (e) => {
+                    if (this.hasChanges) {
+                        e.preventDefault();
+                        e.returnValue = '';
+                    }
+                });
+            },
+
+            async loadNote() {
+                if (!this.noteName) {
+                    this.setStatus('新建笔记', '');
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/note/${encodeURIComponent(this.noteName)}`);
+
+                    if (!response.ok) {
+                        if (response.status === 404) {
+                            this.setStatus('新建笔记', '');
+                            return;
+                        }
+                        throw new Error('加载失败');
+                    }
+
+                    const data = await response.json();
+
+                    if (data.content) {
+                        this.elements.editor.value = data.content;
+                    }
+
+                    this.setStatus('已加载', 'saved');
+                } catch (err) {
+                    this.showError('加载失败: ' + err.message);
+                    this.setStatus('加载失败', 'error');
+                }
+            },
+
+            async save() {
+                if (this.isSaving || !this.hasChanges) return;
+
+                this.isSaving = true;
+                this.elements.saveBtn.disabled = true;
+                this.setStatus('保存中...', 'saving');
+
+                try {
+                    const response = await fetch(`/api/note/${encodeURIComponent(this.noteName)}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ content: this.elements.editor.value })
+                    });
+
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.error || '保存失败');
+                    }
+
+                    this.hasChanges = false;
+                    this.setStatus('已保存 ✓', 'saved');
+
+                    setTimeout(() => {
+                        if (this.elements.status.textContent === '已保存 ✓') {
+                            this.setStatus('已保存', 'saved');
+                        }
+                    }, 2000);
+                } catch (err) {
+                    this.showError('保存失败: ' + err.message);
+                    this.setStatus('保存失败', 'error');
+                } finally {
+                    this.isSaving = false;
+                    this.elements.saveBtn.disabled = false;
+                }
+            },
+
+            wrapSelection(before, after) {
+                const editor = this.elements.editor;
+                const start = editor.selectionStart;
+                const end = editor.selectionEnd;
+                const text = editor.value;
+                const selected = text.substring(start, end);
+
+                editor.value = text.substring(0, start) + before + selected + after + text.substring(end);
+                editor.selectionStart = start + before.length;
+                editor.selectionEnd = end + before.length;
+                editor.focus();
+
+                this.hasChanges = true;
+                this.setStatus('未保存', '');
+            },
+
+            setStatus(text, className) {
+                this.elements.status.textContent = text;
+                this.elements.status.className = 'status ' + className;
+            },
+
+            showError(message) {
+                this.elements.errorOverlay.textContent = message;
+                this.elements.errorOverlay.classList.add('show');
+                setTimeout(() => {
+                    this.elements.errorOverlay.classList.remove('show');
+                }, 3000);
+            }
+        };
+
+        // 暴露保存函数到全局
+        function saveNote() {
+            Editor.save();
+        }
+
+        // 启动编辑器
+        document.addEventListener('DOMContentLoaded', () => {
+            Editor.init();
+        });
+    </script>
+</body>
+</html>
