@@ -414,16 +414,20 @@ function getDefaultTemplate(name, content) {
             const pattern = markerPatterns[format.start];
             let useStart = format.start;
             let useEnd = format.end;
+            let trimmed = selected;
 
-            if (pattern && pattern.regex.test(selected)) {
-                selected = selected.substring(pattern.marker.length, selected.length - pattern.endMarker.length);
-                useStart = '';
-                useEnd = '';
+            if (pattern) {
+                trimmed = selected.trim();
+                if (pattern.regex.test(trimmed)) {
+                    trimmed = trimmed.substring(pattern.marker.length, trimmed.length - pattern.endMarker.length);
+                    useStart = '';
+                    useEnd = '';
+                }
             }
 
-            editor.value = editor.value.substring(0, start) + useStart + selected + useEnd + editor.value.substring(end);
+            editor.value = editor.value.substring(0, start) + useStart + trimmed + useEnd + editor.value.substring(end);
             editor.selectionStart = start + useStart.length;
-            editor.selectionEnd = start + useStart.length + selected.length;
+            editor.selectionEnd = start + useStart.length + trimmed.length;
             editor.focus();
             hasChanges = true; status.textContent = '未保存'; status.className = 'status'; updatePreview();
         }

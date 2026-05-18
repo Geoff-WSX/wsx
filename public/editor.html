@@ -303,27 +303,31 @@
                 } else {
                     // 检查是否已存在该效果，如果有则移除
                     const markerPatterns = {
-                        '**': { regex: /^\*\*(.+)\*\*$/, marker: '**' },
-                        '*': { regex: /^\*(.+)\*$/, marker: '*' },
-                        '~~': { regex: /^~~(.+)~~$/, marker: '~~' },
-                        '__': { regex: /^__(.+)__$/, marker: '__' },
-                        '`': { regex: /^\x60(.+)\x60$/, marker: '`' }
+                        '**': { regex: /^\*\*(.+)\*\*$/, marker: '**', endMarker: '**' },
+                        '*': { regex: /^\*(.+)\*$/, marker: '*', endMarker: '*' },
+                        '~~': { regex: /^~~(.+)~~$/, marker: '~~', endMarker: '~~' },
+                        '__': { regex: /^__(.+)__$/, marker: '__', endMarker: '__' },
+                        '`': { regex: /^\x60(.+)\x60$/, marker: '`', endMarker: '`' }
                     };
 
                     const pattern = markerPatterns[before];
                     let useBefore = before;
                     let useAfter = after;
+                    let trimmed = selected;
 
-                    if (pattern && pattern.regex.test(selected)) {
-                        // 已有效果，取消包裹
-                        selected = selected.substring(pattern.marker.length, selected.length - pattern.marker.length);
-                        useBefore = '';
-                        useAfter = '';
+                    if (pattern) {
+                        trimmed = selected.trim();
+                        if (pattern.regex.test(trimmed)) {
+                            // 已有效果，取消包裹
+                            trimmed = trimmed.substring(pattern.marker.length, trimmed.length - pattern.endMarker.length);
+                            useBefore = '';
+                            useAfter = '';
+                        }
                     }
 
-                    editor.value = text.substring(0, start) + useBefore + selected + useAfter + text.substring(end);
+                    editor.value = text.substring(0, start) + useBefore + trimmed + useAfter + text.substring(end);
                     editor.selectionStart = start + useBefore.length;
-                    editor.selectionEnd = start + useBefore.length + selected.length;
+                    editor.selectionEnd = start + useBefore.length + trimmed.length;
                 }
                 editor.focus();
 
