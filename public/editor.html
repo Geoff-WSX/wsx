@@ -273,35 +273,57 @@
                 const isTitleOrQuote = before === '=== ' || before === '== ' || before === '= ' || before === '> ';
 
                 if (isTitleOrQuote) {
-                    // 找到当前行的起始位置
                     const lineStart = text.lastIndexOf('\n', start - 1) + 1;
                     let lineContent = text.substring(lineStart);
 
-                    // 检测并移除已有的标题/引用前缀
                     let contentToUse = lineContent;
+                    let foundPrefix = '';
                     for (const p of prefixPatterns) {
                         if (p.regex.test(contentToUse)) {
+                            foundPrefix = before;
                             contentToUse = contentToUse.substring(p.length);
                             break;
                         }
                     }
 
-                    // 如果没有选中文本（使用默认值），去掉前缀
-                    if (text.substring(start, end) === '') {
-                        before = '';
+                    // 如果点击相同的前缀，则取消效果
+                    if (foundPrefix === before && before !== '') {
+                        editor.value = text.substring(0, lineStart) + contentToUse + text.substring(lineStart + lineContent.length);
+                        editor.selectionStart = lineStart;
+                        editor.selectionEnd = lineStart + contentToUse.length;
+                    } else {
+                        if (text.substring(start, end) === '') {
+                            before = '';
+                        }
+                        const newLineText = before + contentToUse;
+                        editor.value = text.substring(0, lineStart) + newLineText + text.substring(lineStart + lineContent.length);
+                        editor.selectionStart = lineStart + before.length;
+                        editor.selectionEnd = lineStart + before.length + contentToUse.length;
+                    }
+                } else {
+                    // 检查是否已存在该效果，如果有则移除
+                    const markerPatterns = {
+                        '**': { regex: /^\*\*(.+)\*\*$/, marker: '**' },
+                        '*': { regex: /^\*(.+)\*$/, marker: '*' },
+                        '~~': { regex: /^~~(.+)~~$/, marker: '~~' },
+                        '__': { regex: /^__(.+)__$/, marker: '__' },
+                        '`': { regex: /^\x60(.+)\x60$/, marker: '`' }
+                    };
+
+                    const pattern = markerPatterns[before];
+                    let useBefore = before;
+                    let useAfter = after;
+
+                    if (pattern && pattern.regex.test(selected)) {
+                        // 已有效果，取消包裹
+                        selected = selected.substring(pattern.marker.length, selected.length - pattern.marker.length);
+                        useBefore = '';
+                        useAfter = '';
                     }
 
-                    // 构建新文本：前缀 + 内容 + 后缀
-                    const newLineText = before + contentToUse;
-                    editor.value = text.substring(0, lineStart) + newLineText + text.substring(lineStart + lineContent.length);
-
-                    // 选中整个新效果内容（从前缀后到内容末尾）
-                    editor.selectionStart = lineStart + before.length;
-                    editor.selectionEnd = lineStart + before.length + contentToUse.length;
-                } else {
-                    editor.value = text.substring(0, start) + before + selected + after + text.substring(end);
-                    editor.selectionStart = start + before.length;
-                    editor.selectionEnd = start + before.length + selected.length;
+                    editor.value = text.substring(0, start) + useBefore + selected + useAfter + text.substring(end);
+                    editor.selectionStart = start + useBefore.length;
+                    editor.selectionEnd = start + useBefore.length + selected.length;
                 }
                 editor.focus();
 

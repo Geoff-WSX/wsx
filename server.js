@@ -375,28 +375,55 @@ function getDefaultTemplate(name, content) {
                 ];
 
                 let contentToUse = lineContent;
+                let foundPrefix = '';
                 for (const p of prefixPatterns) {
                     if (p.regex.test(contentToUse)) {
+                        foundPrefix = newPrefix;
                         contentToUse = contentToUse.substring(p.length);
                         break;
                     }
                 }
 
-                const newLineText = newPrefix + contentToUse;
-                editor.value = text.substring(0, lineStart) + newLineText + text.substring(lineStart + lineContent.length);
-
-                // 选中整个新效果内容（从前缀后到内容末尾）
-                editor.selectionStart = lineStart + newPrefix.length;
-                editor.selectionEnd = lineStart + newPrefix.length + contentToUse.length;
+                // 如果点击相同的前缀，则取消效果
+                if (foundPrefix === newPrefix && newPrefix !== '') {
+                    editor.value = text.substring(0, lineStart) + contentToUse + text.substring(lineStart + lineContent.length);
+                    editor.selectionStart = lineStart;
+                    editor.selectionEnd = lineStart + contentToUse.length;
+                } else {
+                    const newLineText = newPrefix + contentToUse;
+                    editor.value = text.substring(0, lineStart) + newLineText + text.substring(lineStart + lineContent.length);
+                    editor.selectionStart = lineStart + newPrefix.length;
+                    editor.selectionEnd = lineStart + newPrefix.length + contentToUse.length;
+                }
 
                 hasChanges = true; status.textContent = '未保存'; status.className = 'status'; updatePreview();
                 return;
             }
             const start = editor.selectionStart, end = editor.selectionEnd;
             const selected = editor.value.substring(start, end);
-            editor.value = editor.value.substring(0, start) + format.start + selected + format.end + editor.value.substring(end);
-            editor.selectionStart = start + format.start.length;
-            editor.selectionEnd = start + format.start.length + selected.length;
+
+            // 检查是否已存在该效果，如果有则移除
+            const markerPatterns = {
+                '<b>': { regex: /^<b>(.+)<\/b>$/, marker: '<b>', endMarker: '</b>' },
+                '<i>': { regex: /^<i>(.+)<\/i>$/, marker: '<i>', endMarker: '</i>' },
+                '<s>': { regex: /^<s>(.+)<\/s>$/, marker: '<s>', endMarker: '</s>' },
+                '<u>': { regex: /^<u>(.+)<\/u>$/, marker: '<u>', endMarker: '</u>' },
+                '<span class="code">': { regex: /^<span class="code">(.+)<\/span>$/, marker: '<span class="code">', endMarker: '</span>' }
+            };
+
+            const pattern = markerPatterns[format.start];
+            let useStart = format.start;
+            let useEnd = format.end;
+
+            if (pattern && pattern.regex.test(selected)) {
+                selected = selected.substring(pattern.marker.length, selected.length - pattern.endMarker.length);
+                useStart = '';
+                useEnd = '';
+            }
+
+            editor.value = editor.value.substring(0, start) + useStart + selected + useEnd + editor.value.substring(end);
+            editor.selectionStart = start + useStart.length;
+            editor.selectionEnd = start + useStart.length + selected.length;
             editor.focus();
             hasChanges = true; status.textContent = '未保存'; status.className = 'status'; updatePreview();
         }
