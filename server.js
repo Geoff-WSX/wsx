@@ -302,24 +302,23 @@ function getDefaultTemplate(name, content) {
                 if (!text) return '';
                 let html = text
                     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-                    .replace(/``([\\s\\S]*?)``/g, '<span class="code">$1</span>')
+                    .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+                    .replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '<i>$1</i>')
+                    .replace(/~~(.+?)~~/g, '<s>$1</s>')
+                    .replace(/__(.+?)__/g, '<u>$1</u>')
                     .replace(/^=== (.+)$/gm, '<span class="h1">$1</span>')
                     .replace(/^== (.+)$/gm, '<span class="h2">$1</span>')
                     .replace(/^= (.+)$/gm, '<span class="h3">$1</span>')
-                    .replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>')
-                    .replace(/(?<!\\*)\\*(?!\\*)(.+?)(?<!\\*)\\*(?!\\*)/g, '<i>$1</i>')
-                    .replace(/~~(.+?)~~/g, '<s>$1</s>')
-                    .replace(/__(.+?)__/g, '<u>$1</u>')
                     .replace(/^> (.+)$/gm, '<span class="quote">$1</span>')
-                    .replace(/\\`([^\\`]+)\\`/g, '<span class="code">$1</span>')
-                    .replace(/\\[([^\\]]+)\\]\\(([^)]+)\\)/g, '<a href="$2" class="url" target="_blank">$1</a>');
-                const lines = html.split('\\n');
+                    .replace(/\x60([^\x60]+)\x60/g, '<span class="code">$1</span>')
+                    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="url" target="_blank">$1</a>');
+                const lines = html.split('\n');
                 html = lines.map(line => {
                     if (line.startsWith('<span class="h') || line.startsWith('<span class="quote')) {
                         return '<span class="line">' + line + '</span>';
                     }
                     return '<span class="line">' + line + '</span>';
-                }).join('\\n');
+                }).join('\n');
                 return html;
             }
         };
