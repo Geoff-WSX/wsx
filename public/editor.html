@@ -352,27 +352,24 @@
                     .replace(/>/g, '&gt;')
 
                     // 代码块
-                    .replace(/``([\s\S]*?)``/g, '<span class="code">$1</span>')
-
-                    // 标题（必须在加粗之前处理）
                     .replace(/^=== (.+)$/gm, '<span class="h1">$1</span>')
                     .replace(/^== (.+)$/gm, '<span class="h2">$1</span>')
                     .replace(/^= (.+)$/gm, '<span class="h3">$1</span>')
 
                     // 加粗 **text**
-                    .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+                    .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
 
-                    // 斜体 *text*
-                    .replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '<i>$1</i>')
+                    // 斜体 *text* (单个星号，排除掉加粗的情况)
+                    .replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<i>$1</i>')
 
                     // 删除线 ~~text~~
-                    .replace(/~~(.+?)~~/g, '<s>$1</s>')
+                    .replace(/~~([^~]+)~~/g, '<s>$1</s>')
 
                     // 下划线 __text__
-                    .replace(/__(.+?)__/g, '<u>$1</u>')
+                    .replace(/__([^_]+)__/g, '<u>$1</u>')
 
                     // 引用 > text
-                    .replace(/^> (.+)$/gm, '<span class="quote">$1</span>')
+                    .replace(/^&gt; (.+)$/gm, '<span class="quote">$1</span>')
 
                     // 行内代码 `text`
                     .replace(/`([^`]+)`/g, '<span class="code">$1</span>')
