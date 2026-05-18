@@ -9,8 +9,9 @@
   "scripts": {
     "start": "node cli.js",
     "server": "node server.js",
-    "dev:frontend": "cd frontend && npm install && npm run dev",
-    "dev:all": "concurrently \"npm run server\" \"npm run dev:frontend\"",
+    "dev": "node dev.js",
+    "dev:backend": "node server.js",
+    "dev:frontend": "cd frontend && npm run dev",
     "build:frontend": "cd frontend && npm install && npm run build",
     "docker:build": "docker-compose build",
     "docker:up": "docker-compose up -d",

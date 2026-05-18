@@ -33,6 +33,10 @@ async function startServer() {
         console.log(`💡 访问 http://localhost:${actualPort}/editor.html 打开编辑器`);
     });
 
+    // 将实际端口保存到文件供 Vite 代理读取
+    const portFile = path.join(process.cwd(), '.wsx-port');
+    fs.writeFileSync(portFile, String(actualPort));
+
     // 将实际端口保存到全局供 cli.js 读取
     process.env.WSX_ACTUAL_PORT = actualPort;
 
