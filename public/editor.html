@@ -561,18 +561,43 @@
             if (type === 'codeblock' || type === 'hr' || type === 'ul' || type === 'ol' || type === 'task' ||
                 type === 'h1' || type === 'h2' || type === 'h3' || type === 'quote') {
                 const map = {
-                    codeblock: { marker: '```\n', endMarker: '\n```', regex: /^```/ },
-                    hr: { marker: '---', endMarker: '', regex: /^---$/ },
-                    ul: { marker: '- ', endMarker: '', regex: /^[\-\*] / },
-                    ol: { marker: '1. ', endMarker: '', regex: /^\d+\. / },
-                    task: { marker: '[ ] ', endMarker: '', regex: /^\[ \] / },
-                    h1: { marker: '=== ', endMarker: '', regex: /^=== / },
-                    h2: { marker: '== ', endMarker: '', regex: /^== / },
-                    h3: { marker: '= ', endMarker: '', regex: /^= / },
-                    quote: { marker: '> ', endMarker: '', regex: /^> / }
+                    codeblock: { marker: '```\n', endMarker: '\n```', regex: /^```\n/, endRegex: /\n```$/ },
+                    hr: { marker: '---', endMarker: '', regex: /^---$/, endRegex: null },
+                    ul: { marker: '- ', endMarker: '', regex: /^[\-\*] /, endRegex: null },
+                    ol: { marker: '1. ', endMarker: '', regex: /^\d+\. /, endRegex: null },
+                    task: { marker: '[ ] ', endMarker: '', regex: /^\[ \] /, endRegex: null },
+                    h1: { marker: '=== ', endMarker: '', regex: /^=== /, endRegex: null },
+                    h2: { marker: '== ', endMarker: '', regex: /^== /, endRegex: null },
+                    h3: { marker: '= ', endMarker: '', regex: /^= /, endRegex: null },
+                    quote: { marker: '> ', endMarker: '', regex: /^> /, endRegex: null }
                 };
                 const cfg = map[type];
                 if (!cfg) return;
+
+                // 代码块特殊处理：检测完整代码块结构
+                if (type === 'codeblock') {
+                    const codeBlockStart = text.lastIndexOf('\n```\n', start - 1);
+                    const codeBlockEnd = text.indexOf('\n```', end);
+                    if (codeBlockStart !== -1 && codeBlockEnd !== -1) {
+                        // 取消代码块：移除 ``` 标记
+                        const before = text.substring(0, codeBlockStart + 1);
+                        const codeContent = text.substring(codeBlockStart + 5, codeBlockEnd);
+                        const after = text.substring(codeBlockEnd + 4);
+                        editor.value = before + codeContent + after;
+                        editor.selectionStart = editor.selectionEnd = codeBlockStart + 1;
+                    } else {
+                        // 添加代码块
+                        const lineStart = text.lastIndexOf('\n', start - 1) + 1;
+                        editor.value = text.substring(0, lineStart) + '```\n' + selected + '\n```' + text.substring(end);
+                        editor.selectionStart = lineStart + 4;
+                        editor.selectionEnd = lineStart + 4 + selected.length;
+                    }
+                    editor.focus();
+                    Editor.hasChanges = true;
+                    Editor.setStatus('未保存', '');
+                    Editor.updatePreview();
+                    return;
+                }
 
                 const lineStart = text.lastIndexOf('\n', start - 1) + 1;
                 const lineContent = text.substring(lineStart);
@@ -584,17 +609,9 @@
                     editor.value = text.substring(0, lineStart) + lineContent.substring(prefixLen) + text.substring(lineStart + lineContent.length);
                     editor.selectionStart = editor.selectionEnd = lineStart;
                 } else {
-                    // 添加完整格式
-                    if (type === 'codeblock') {
-                        // 代码块特殊处理：添加完整代码块结构
-                        editor.value = text.substring(0, lineStart) + '```\n' + selected + '\n```' + text.substring(end);
-                        editor.selectionStart = lineStart + 4;
-                        editor.selectionEnd = lineStart + 4 + selected.length;
-                    } else {
-                        editor.value = text.substring(0, lineStart) + cfg.marker + selected + text.substring(end);
-                        editor.selectionStart = lineStart + cfg.marker.length;
-                        editor.selectionEnd = lineStart + cfg.marker.length + selected.length;
-                    }
+                    editor.value = text.substring(0, lineStart) + cfg.marker + selected + text.substring(end);
+                    editor.selectionStart = lineStart + cfg.marker.length;
+                    editor.selectionEnd = lineStart + cfg.marker.length + selected.length;
                 }
                 editor.focus();
                 Editor.hasChanges = true;
