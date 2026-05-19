@@ -258,9 +258,9 @@ function getDefaultTemplate(name, content) {
         .toolbar-toggle:hover { background: var(--accent); color: white; }
         .edit-toggle { background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-primary); padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }
         .edit-toggle:hover { background: var(--accent); color: white; }
-        /* 编辑器默认显示 */
-        .editor-pane { display: flex; }
-        .editor-pane.hide { display: none; }
+        /* 编辑器默认隐藏，切换显示 */
+        .editor-pane { display: none; }
+        .editor-pane.show { display: flex; }
         .preview-pane { flex: 1; }
         @media (max-width: 768px) { .main-container { flex-direction: column; } .preview-pane { display: none; } .toolbar { display: none; } }
     </style>
@@ -669,7 +669,7 @@ function getDefaultTemplate(name, content) {
         const editorPane = document.querySelector('.editor-pane');
         if (editToggle && editorPane) {
             editToggle.addEventListener('click', () => {
-                editorPane.classList.toggle('hide');
+                editorPane.classList.toggle('show');
             });
         }
 
