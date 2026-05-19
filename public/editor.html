@@ -92,6 +92,11 @@
         .editor-pane { display: none; }
         .editor-pane.show { display: flex; }
         .preview-pane { flex: 1; }
+        .preview-content { display: block; }
+        .preview-content.hidden { display: none; }
+        .preview-editor { display: none; width: 100%; height: 100%; min-height: calc(100vh - 140px); background: var(--bg-editor); border: none; color: var(--text-primary); font-size: 15px; line-height: 1.8; resize: none; font-family: monospace; }
+        .preview-editor.show { display: block; }
+        .preview-editor:focus { outline: none; }
         @media (max-width: 768px) { .main-container { flex-direction: column; } .preview-pane { display: none; } .toolbar { display: none; } }
     </style>
 </head>
@@ -144,6 +149,7 @@
             <div class="pane-header">👁️ 预览</div>
             <div class="preview-wrapper">
                 <div class="preview-content" id="preview"></div>
+                <textarea id="previewEditor" class="preview-editor" placeholder="在这里直接编辑..."></textarea>
             </div>
         </div>
     </div>
@@ -331,6 +337,37 @@
                     this.updatePreview();
                 });
 
+                // 预览区编辑
+                const previewEditor = document.getElementById('previewEditor');
+                const preview = document.getElementById('preview');
+                if (previewEditor && preview) {
+                    previewEditor.addEventListener('input', () => {
+                        this.hasChanges = true;
+                        this.setStatus('未保存', '');
+                        this.elements.editor.value = previewEditor.value;
+                        preview.innerHTML = Parser.parse(previewEditor.value);
+                    });
+                    previewEditor.addEventListener('blur', () => {
+                        previewEditor.classList.remove('show');
+                        preview.classList.remove('hidden');
+                        preview.innerHTML = Parser.parse(previewEditor.value);
+                    });
+                }
+
+                // 点击预览标题栏进入编辑模式
+                const previewPaneHeader = document.querySelector('.preview-pane .pane-header');
+                if (previewPaneHeader) {
+                    previewPaneHeader.style.cursor = 'pointer';
+                    previewPaneHeader.addEventListener('click', () => {
+                        if (previewEditor && preview) {
+                            previewEditor.classList.add('show');
+                            preview.classList.add('hidden');
+                            previewEditor.value = this.elements.editor.value;
+                            previewEditor.focus();
+                        }
+                    });
+                }
+
                 this.elements.themeToggle.addEventListener('click', () => this.toggleTheme());
 
                 // 工具栏切换
@@ -370,6 +407,11 @@
             updatePreview() {
                 const content = this.elements.editor.value;
                 this.elements.preview.innerHTML = Parser.parse(content);
+                // 同步到预览编辑器
+                const previewEditor = document.getElementById('previewEditor');
+                if (previewEditor) {
+                    previewEditor.value = content;
+                }
             },
 
             togglePreview() {
