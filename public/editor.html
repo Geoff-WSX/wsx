@@ -839,7 +839,7 @@
             Editor.updatePreview();
         }
 
-        document.addEventListener('DOMContentLoaded', () => Editor.init());
+        document.addEventListener('DOMContentLoaded', () => { console.log('DOMContentLoaded!'); Editor.init(); });
     </script>
 </body>
 </html>
