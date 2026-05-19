@@ -291,7 +291,7 @@ function getDefaultTemplate(name, content) {
             <div class="toolbar-sep"></div>
             <button class="toolbar-btn" onclick="format('quote')" title="引用">❝</button>
             <button class="toolbar-btn" onclick="format('code')" title="行内代码">code</button>
-            <button class="toolbar-btn" onclick="format('codeblock')" title="代码块">```</button>
+            <button class="toolbar-btn" onclick="format('codeblock')" title="代码块">&lt;/&gt;</button>
             <div class="toolbar-sep"></div>
             <button class="toolbar-btn" onclick="format('ul')" title="无序列表">•</button>
             <button class="toolbar-btn" onclick="format('ol')" title="有序列表">1.</button>
@@ -392,7 +392,7 @@ function getDefaultTemplate(name, content) {
                 return html;
             },
             parseCodeBlocks(text) {
-                return text.replace(/```([\s\S]*?)```/g, (match, code) => {
+                return text.replace(/\x60\x60\x60([\s\S]*?)\x60\x60\x60/g, (match, code) => {
                     return '<pre class="code-block"><code>' + code.trim() + '</code></pre>';
                 });
             },
@@ -452,7 +452,7 @@ function getDefaultTemplate(name, content) {
 
             isFormatted(line) {
                 const trimmed = line.trim();
-                return trimmed.startsWith('===') || trimmed.startsWith('== ') || trimmed.startsWith('= ') || trimmed.startsWith('```') || trimmed.startsWith('> ') || trimmed.startsWith('- ') || /^\d+\.\s/.test(trimmed);
+                return trimmed.startsWith('===') || trimmed.startsWith('== ') || trimmed.startsWith('= ') || trimmed.startsWith('\x60\x60\x60') || trimmed.startsWith('> ') || trimmed.startsWith('- ') || /^\d+\.\s/.test(trimmed);
             },
 
             detectHeadingByIndent(line) {
@@ -515,7 +515,7 @@ function getDefaultTemplate(name, content) {
                 const text = textarea.value;
                 const before = text.substring(0, lineStart);
                 const after = text.substring(lineEnd);
-                const codeBlock = '```' + language + '\n' + line.trim() + '\n```';
+                const codeBlock = '\x60\x60\x60' + language + '\n' + line.trim() + '\n\x60\x60\x60';
                 textarea.value = before + codeBlock + after;
                 textarea.selectionStart = textarea.selectionEnd = before.length + 4 + language.length + line.trim().length + 5;
             },
@@ -707,7 +707,7 @@ function getDefaultTemplate(name, content) {
             if (type === 'codeblock' || type === 'hr' || type === 'ul' || type === 'ol' || type === 'task' ||
                 type === 'h1' || type === 'h2' || type === 'h3' || type === 'quote') {
                 const map = {
-                    codeblock: { marker: '```\n', endMarker: '\n```', regex: /^```\n/, endRegex: /\n```$/ },
+                    codeblock: { marker: '\x60\x60\x60\n', endMarker: '\n\x60\x60\x60', regex: /^\x60\x60\x60\n/, endRegex: /\n\x60\x60\x60$/ },
                     hr: { marker: '---', endMarker: '', regex: /^---$/, endRegex: null },
                     ul: { marker: '- ', endMarker: '', regex: /^[\-\*] /, endRegex: null },
                     ol: { marker: '1. ', endMarker: '', regex: /^\d+\. /, endRegex: null },
@@ -722,10 +722,10 @@ function getDefaultTemplate(name, content) {
 
                 // 代码块特殊处理：检测完整代码块结构
                 if (type === 'codeblock') {
-                    const codeBlockStart = text.lastIndexOf('\n```\n', start - 1);
-                    const codeBlockEnd = text.indexOf('\n```', end);
+                    const codeBlockStart = text.lastIndexOf('\n\x60\x60\x60\n', start - 1);
+                    const codeBlockEnd = text.indexOf('\n\x60\x60\x60', end);
                     if (codeBlockStart !== -1 && codeBlockEnd !== -1) {
-                        // 取消代码块：移除 ``` 标记
+                        // 取消代码块：移除标记
                         const before = text.substring(0, codeBlockStart + 1);
                         const codeContent = text.substring(codeBlockStart + 5, codeBlockEnd);
                         const after = text.substring(codeBlockEnd + 4);
@@ -734,7 +734,7 @@ function getDefaultTemplate(name, content) {
                     } else {
                         // 添加代码块
                         const lineStart = text.lastIndexOf('\n', start - 1) + 1;
-                        editor.value = text.substring(0, lineStart) + '```\n' + selected + '\n```' + text.substring(end);
+                        editor.value = text.substring(0, lineStart) + '\x60\x60\x60\n' + selected + '\n\x60\x60\x60' + text.substring(end);
                         editor.selectionStart = lineStart + 4;
                         editor.selectionEnd = lineStart + 4 + selected.length;
                     }
@@ -765,7 +765,7 @@ function getDefaultTemplate(name, content) {
             const formatMap = {
                 bold: ['**', '**'], italic: ['*', '*'], strike: ['~~', '~~'],
                 underline: ['__', '__'], highlight: ['==', '=='],
-                code: ['`', '`']
+                code: ['\x60', '\x60']
             };
 
             if (!formatMap[type]) return;
@@ -775,11 +775,11 @@ function getDefaultTemplate(name, content) {
             let useAfter = after;
             let content = selected;
 
-            // 行内代码特殊处理：检测光标前后是否有 `
+            // 行内代码特殊处理：检测光标前后是否有反引号
             if (type === 'code') {
                 const beforeChar = start > 0 ? text[start - 1] : '';
                 const afterChar = end < text.length ? text[end] : '';
-                if (beforeChar === '`' || afterChar === '`') {
+                if (beforeChar === '\x60' || afterChar === '\x60') {
                     editor.focus();
                     return;
                 }
@@ -799,7 +799,7 @@ function getDefaultTemplate(name, content) {
                     useAfter = '';
                 } else {
                     // 添加效果：检查是否有其他包裹格式，有则先移除
-                    const otherMarkers = ['**', '*', '~~', '__', '==', '`'];
+                    const otherMarkers = ['**', '*', '~~', '__', '==', '\x60'];
                     for (const m of otherMarkers) {
                         if (m !== before && trimmed.startsWith(m) && trimmed.endsWith(m)) {
                             content = trimmed.substring(m.length, trimmed.length - m.length);
