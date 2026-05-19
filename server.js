@@ -252,6 +252,10 @@ function getDefaultTemplate(name, content) {
         .preview-content .toc { background: var(--bg-secondary); padding: 12px 16px; border-radius: 6px; margin: 0.5em 0; }
         .preview-content mark { background: #ffeb3b; color: #333; padding: 2px 4px; border-radius: 3px; }
         [data-theme="dark"] .preview-content mark { background: #5a4a00; color: #fff; }
+        .toolbar { display: none; }
+        .toolbar.show { display: flex; }
+        .toolbar-toggle { background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-primary); padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+        .toolbar-toggle:hover { background: var(--accent); color: white; }
         @media (max-width: 768px) { .main-container { flex-direction: column; } .preview-pane { display: none; } .toolbar { display: none; } }
     </style>
 </head>
@@ -261,7 +265,8 @@ function getDefaultTemplate(name, content) {
             <h1>📝 wsx</h1>
             <span class="note-name">${escapeHtml(name)}</span>
         </div>
-        <div class="toolbar">
+        <button class="toolbar-toggle" id="toolbarToggle">⚡ 格式</button>
+        <div class="toolbar" id="toolbar">
             <button class="toolbar-btn" onclick="format('bold')" title="加粗"><b>B</b></button>
             <button class="toolbar-btn" onclick="format('italic')" title="斜体"><i>I</i></button>
             <button class="toolbar-btn" onclick="format('strike')" title="删除线"><s>S</s></button>
@@ -642,6 +647,16 @@ function getDefaultTemplate(name, content) {
 
         editor.addEventListener('input', () => { hasChanges = true; status.textContent = '未保存'; status.className = 'status'; updatePreview(); });
         themeToggle.addEventListener('click', toggleTheme);
+
+        // 工具栏切换
+        const toolbarToggle = document.getElementById('toolbarToggle');
+        const toolbar = document.getElementById('toolbar');
+        if (toolbarToggle && toolbar) {
+            toolbarToggle.addEventListener('click', () => {
+                toolbar.classList.toggle('show');
+            });
+        }
+
         document.addEventListener('keydown', (e) => {
             if (e.ctrlKey || e.metaKey) {
                 if (e.key.toLowerCase() === 's') { e.preventDefault(); save(); }
