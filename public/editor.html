@@ -489,6 +489,7 @@
             bindEvents() {
                 // 编辑器变化时更新预览
                 this.elements.editor.addEventListener('input', () => {
+                    console.log('Editor input event!'); // DEBUG
                     this.hasChanges = true;
                     this.setStatus('未保存', '');
                     this.elements.preview.innerHTML = Parser.parse(this.elements.editor.value);
