@@ -879,7 +879,17 @@ function getDefaultTemplate(name, content) {
         if (previewEditor && preview) {
             previewEditor.addEventListener('input', () => {
                 hasChanges = true; status.textContent = '未保存'; status.className = 'status';
+                const selection = window.getSelection();
+                let cursorOffset = 0;
+                if (selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    const preCaretRange = range.cloneRange();
+                    preCaretRange.selectNodeContents(preview);
+                    preCaretRange.setEnd(range.startContainer, range.startOffset);
+                    cursorOffset = preCaretRange.toString().length;
+                }
                 editor.value = previewEditor.value;
+                editor.selectionStart = editor.selectionEnd = Math.min(cursorOffset, editor.value.length);
                 preview.innerHTML = Parser.parse(previewEditor.value);
                 AutoFormat.checkAndFormat(editor, 'input');
             });

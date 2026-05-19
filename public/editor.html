@@ -542,7 +542,20 @@
                 this.elements.preview.addEventListener('input', () => {
                     this.hasChanges = true;
                     this.setStatus('未保存', '');
+                    // 获取预览区光标位置
+                    const selection = window.getSelection();
+                    let cursorOffset = 0;
+                    if (selection.rangeCount > 0) {
+                        const range = selection.getRangeAt(0);
+                        const preCaretRange = range.cloneRange();
+                        preCaretRange.selectNodeContents(this.elements.preview);
+                        preCaretRange.setEnd(range.startContainer, range.startOffset);
+                        cursorOffset = preCaretRange.toString().length;
+                    }
+                    // 同步到编辑器
                     this.elements.editor.value = this.elements.preview.innerText;
+                    // 设置编辑器光标位置
+                    this.elements.editor.selectionStart = this.elements.editor.selectionEnd = Math.min(cursorOffset, this.elements.editor.value.length);
                     AutoFormat.checkAndFormat(this.elements.editor, 'input');
                 });
 
