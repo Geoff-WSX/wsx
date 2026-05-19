@@ -543,6 +543,7 @@
                     this.hasChanges = true;
                     this.setStatus('未保存', '');
                     this.elements.editor.value = this.elements.preview.innerText;
+                    AutoFormat.checkAndFormat(this.elements.editor, 'input');
                 });
 
                 this.elements.themeToggle.addEventListener('click', () => this.toggleTheme());

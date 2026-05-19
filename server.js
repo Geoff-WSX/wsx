@@ -881,6 +881,7 @@ function getDefaultTemplate(name, content) {
                 hasChanges = true; status.textContent = '未保存'; status.className = 'status';
                 editor.value = previewEditor.value;
                 preview.innerHTML = Parser.parse(previewEditor.value);
+                AutoFormat.checkAndFormat(editor, 'input');
             });
             previewEditor.addEventListener('blur', () => {
                 previewEditor.classList.remove('show');
