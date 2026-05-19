@@ -423,8 +423,10 @@
             },
 
             install(textarea) {
+                console.log('AutoFormat.install called, textarea:', textarea); // DEBUG
                 let debounceTimer;
                 textarea.addEventListener('input', () => {
+                    console.log('input event fired'); // DEBUG
                     clearTimeout(debounceTimer);
                     debounceTimer = setTimeout(() => {
                         this.checkAndFormat(textarea);
