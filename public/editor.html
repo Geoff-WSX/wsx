@@ -92,11 +92,20 @@
         .editor-pane { display: none; }
         .editor-pane.show { display: flex; }
         .preview-pane { flex: 1; }
-        .preview-content { display: block; }
-        .preview-content.hidden { display: none; }
-        .preview-editor { display: none; width: 100%; height: 100%; min-height: calc(100vh - 140px); background: var(--bg-editor); border: none; color: var(--text-primary); font-size: 15px; line-height: 1.8; resize: none; font-family: monospace; padding: 16px; box-sizing: border-box; }
-        .preview-editor.show { display: block !important; }
-        .preview-editor:focus { outline: none; }
+        .preview-content { display: block; width: 100%; min-height: calc(100vh - 140px); padding: 16px; box-sizing: border-box; font-family: monospace; font-size: 15px; line-height: 1.8; outline: none; white-space: pre-wrap; word-wrap: break-word; }
+        .preview-content:focus { background: rgba(255,255,255,0.02); }
+        /* 预览中的格式化样式 */
+        .preview-content b { font-weight: bold; }
+        .preview-content i { font-style: italic; }
+        .preview-content s { text-decoration: line-through; }
+        .preview-content u { text-decoration: underline; }
+        .preview-content mark { background: #ffeb3b; padding: 2px 4px; border-radius: 3px; }
+        .preview-content .code { background: var(--bg-secondary); padding: 2px 6px; border-radius: 4px; color: var(--accent); }
+        .preview-content .h1 { font-size: 2em; font-weight: bold; display: block; margin: 0.5em 0; }
+        .preview-content .h2 { font-size: 1.5em; font-weight: bold; display: block; margin: 0.5em 0; }
+        .preview-content .h3 { font-size: 1.25em; font-weight: bold; display: block; margin: 0.5em 0; }
+        .preview-content .quote { border-left: 4px solid var(--accent); padding-left: 12px; color: var(--text-secondary); display: block; margin: 0.5em 0; }
+        .preview-content .url { color: var(--accent); text-decoration: underline; }
         @media (max-width: 768px) { .main-container { flex-direction: column; } .preview-pane { display: none; } .toolbar { display: none; } }
     </style>
 </head>
@@ -148,8 +157,7 @@
         <div class="preview-pane">
             <div class="pane-header">👁️ 预览</div>
             <div class="preview-wrapper">
-                <div class="preview-content" id="preview"></div>
-                <textarea id="previewEditor" class="preview-editor" placeholder="在这里直接编辑..."></textarea>
+                <div class="preview-content" id="preview" contenteditable="true" spellcheck="false"></div>
             </div>
         </div>
     </div>
@@ -331,42 +339,19 @@
             },
 
             bindEvents() {
+                // 编辑器变化时更新预览
                 this.elements.editor.addEventListener('input', () => {
                     this.hasChanges = true;
                     this.setStatus('未保存', '');
-                    this.updatePreview();
+                    this.elements.preview.innerHTML = Parser.parse(this.elements.editor.value);
                 });
 
-                // 预览区编辑
-                const previewEditor = document.getElementById('previewEditor');
-                const preview = document.getElementById('preview');
-                if (previewEditor && preview) {
-                    previewEditor.addEventListener('input', () => {
-                        this.hasChanges = true;
-                        this.setStatus('未保存', '');
-                        this.elements.editor.value = previewEditor.value;
-                        preview.innerHTML = Parser.parse(previewEditor.value);
-                    });
-                    previewEditor.addEventListener('blur', () => {
-                        previewEditor.classList.remove('show');
-                        preview.classList.remove('hidden');
-                        preview.innerHTML = Parser.parse(previewEditor.value);
-                    });
-                }
-
-                // 点击预览标题栏进入编辑模式
-                const previewPaneHeader = document.querySelector('.preview-pane .pane-header');
-                if (previewPaneHeader) {
-                    previewPaneHeader.style.cursor = 'pointer';
-                    previewPaneHeader.addEventListener('click', () => {
-                        if (previewEditor && preview) {
-                            previewEditor.classList.add('show');
-                            preview.classList.add('hidden');
-                            previewEditor.value = this.elements.editor.value;
-                            previewEditor.focus();
-                        }
-                    });
-                }
+                // 预览区编辑 - 将内容同步到编辑器
+                this.elements.preview.addEventListener('input', () => {
+                    this.hasChanges = true;
+                    this.setStatus('未保存', '');
+                    this.elements.editor.value = this.elements.preview.innerText;
+                });
 
                 this.elements.themeToggle.addEventListener('click', () => this.toggleTheme());
 
@@ -405,12 +390,31 @@
             },
 
             updatePreview() {
+                // 保存光标位置
+                const selection = window.getSelection();
+                let cursorOffset = 0;
+                let cursorNode = null;
+
+                if (selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    cursorNode = range.startContainer;
+                    cursorOffset = range.startOffset;
+                }
+
                 const content = this.elements.editor.value;
                 this.elements.preview.innerHTML = Parser.parse(content);
-                // 同步到预览编辑器
-                const previewEditor = document.getElementById('previewEditor');
-                if (previewEditor) {
-                    previewEditor.value = content;
+
+                // 恢复光标位置
+                if (cursorNode && this.elements.preview.contains(cursorNode)) {
+                    try {
+                        const newRange = document.createRange();
+                        newRange.setStart(cursorNode, Math.min(cursorOffset, cursorNode.length || 0));
+                        newRange.collapse(true);
+                        selection.removeAllRanges();
+                        selection.addRange(newRange);
+                    } catch (e) {
+                        // 忽略光标恢复错误
+                    }
                 }
             },
 
