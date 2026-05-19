@@ -393,11 +393,13 @@
             checkAndFormat(textarea) {
                 const { line, lineStart, lineEnd } = this.getCurrentLine(textarea);
                 const trimmed = line.trim();
+                console.log('checkAndFormat called:', { line, trimmed, pos: textarea.selectionStart }); // DEBUG
                 if (!trimmed) return;
 
                 // 检查代码模式
                 const codeResult = this.detectCodePattern(line);
                 if (codeResult) {
+                    console.log('Detected code:', codeResult); // DEBUG
                     this.applyCodeBlock(textarea, lineStart, lineEnd, codeResult.language, line);
                     textarea.dispatchEvent(new Event('input', { bubbles: true }));
                     return;
@@ -405,6 +407,7 @@
 
                 // 检查章节关键词
                 const chapterResult = this.detectChapterKeyword(line);
+                console.log('Chapter result:', chapterResult); // DEBUG
                 if (chapterResult) {
                     this.applyHeading(textarea, lineStart, chapterResult.marker, chapterResult.content);
                     textarea.dispatchEvent(new Event('input', { bubbles: true }));
@@ -744,6 +747,7 @@
 
                 const lineStart = text.lastIndexOf('\n', start - 1) + 1;
                 const lineContent = text.substring(lineStart);
+                console.log('format h1:', { start, end, text, lineStart, lineContent }); // DEBUG
 
                 // 检测是否已存在该行级格式
                 if (cfg.regex.test(lineContent)) {
