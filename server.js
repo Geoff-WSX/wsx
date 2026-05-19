@@ -234,6 +234,24 @@ function getDefaultTemplate(name, content) {
         .status.saving { color: #f39c12; }
         .status.saved { color: #27ae60; }
         .status.error { color: #e74c3c; }
+        .preview-content .highlight { background: #ffeb3b; padding: 2px 4px; border-radius: 3px; }
+        .preview-content .code-block { background: var(--bg-secondary); padding: 12px 16px; border-radius: 6px; margin: 0.5em 0; overflow-x: auto; display: block; }
+        .preview-content .code-block code { color: var(--accent); font-size: 14px; }
+        .preview-content .ul-item { display: block; padding-left: 1.5em; }
+        .preview-content .ul-marker { color: var(--accent); margin-right: 8px; }
+        .preview-content .ol-item { display: block; padding-left: 1.5em; }
+        .preview-content .ol-marker { color: var(--accent); margin-right: 8px; }
+        .preview-content .task-item { display: flex; align-items: center; gap: 8px; padding: 2px 0; }
+        .preview-content .task-item input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); }
+        .preview-content .hr-line { border: none; border-top: 2px solid var(--border); margin: 1em 0; }
+        .preview-content .img { max-width: 100%; border-radius: 4px; margin: 0.5em 0; }
+        .preview-content .table { border-collapse: collapse; width: 100%; margin: 0.5em 0; }
+        .preview-content .table td, .preview-content .table th { border: 1px solid var(--border); padding: 8px 12px; text-align: left; }
+        .preview-content .math { font-family: 'Times New Roman', serif; font-style: italic; color: var(--accent); }
+        .preview-content .footnote { color: var(--accent); font-size: 0.8em; vertical-align: super; }
+        .preview-content .toc { background: var(--bg-secondary); padding: 12px 16px; border-radius: 6px; margin: 0.5em 0; }
+        .preview-content mark { background: #ffeb3b; color: #333; padding: 2px 4px; border-radius: 3px; }
+        [data-theme="dark"] .preview-content mark { background: #5a4a00; color: #fff; }
         @media (max-width: 768px) { .main-container { flex-direction: column; } .preview-pane { display: none; } .toolbar { display: none; } }
     </style>
 </head>
@@ -248,6 +266,7 @@ function getDefaultTemplate(name, content) {
             <button class="toolbar-btn" onclick="format('italic')" title="斜体"><i>I</i></button>
             <button class="toolbar-btn" onclick="format('strike')" title="删除线"><s>S</s></button>
             <button class="toolbar-btn" onclick="format('underline')" title="下划线"><u>U</u></button>
+            <button class="toolbar-btn" onclick="format('highlight')" title="高亮"><mark>H</mark></button>
             <div class="toolbar-sep"></div>
             <button class="toolbar-btn" onclick="format('h1')">H1</button>
             <button class="toolbar-btn" onclick="format('h2')">H2</button>
@@ -255,6 +274,17 @@ function getDefaultTemplate(name, content) {
             <div class="toolbar-sep"></div>
             <button class="toolbar-btn" onclick="format('quote')">❝</button>
             <button class="toolbar-btn" onclick="format('code')">code</button>
+            <button class="toolbar-btn" onclick="format('codeblock')" title="代码块">```</button>
+            <div class="toolbar-sep"></div>
+            <button class="toolbar-btn" onclick="format('ul')" title="无序列表">•</button>
+            <button class="toolbar-btn" onclick="format('ol')" title="有序列表">1.</button>
+            <button class="toolbar-btn" onclick="format('task')" title="任务列表">[ ]</button>
+            <div class="toolbar-sep"></div>
+            <button class="toolbar-btn" onclick="format('link')" title="链接">🔗</button>
+            <button class="toolbar-btn" onclick="format('image')" title="图片">🖼</button>
+            <button class="toolbar-btn" onclick="format('table')" title="表格">▦</button>
+            <button class="toolbar-btn" onclick="format('hr')" title="水平线">—</button>
+            <button class="toolbar-btn" onclick="format('math')" title="数学公式">∑</button>
         </div>
         <div class="header-right">
             <button class="theme-toggle" id="themeToggle">🌙 深色</button>
@@ -292,6 +322,7 @@ function getDefaultTemplate(name, content) {
                 italic: { start: '<i>', end: '</i>' },
                 strike: { start: '<s>', end: '</s>' },
                 underline: { start: '<u>', end: '</u>' },
+                highlight: { start: '<mark>', end: '</mark>' },
                 code: { start: '<span class="code">', end: '</span>' },
                 quote: { start: '<span class="quote">', end: '</span>' },
                 h1: { start: '<span class="h1">', end: '</span>' },
@@ -301,23 +332,70 @@ function getDefaultTemplate(name, content) {
             parse(text) {
                 if (!text) return '';
                 let html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+                // 代码块处理
+                html = this.parseCodeBlocks(html);
+
                 const lines = html.split('\n');
                 html = lines.map(line => {
                     if (line.startsWith('===')) return '<span class="h1 line">' + line.slice(4).trim() + '</span>';
                     if (line.startsWith('== ')) return '<span class="h2 line">' + line.slice(3).trim() + '</span>';
                     if (line.startsWith('= ')) return '<span class="h3 line">' + line.slice(2).trim() + '</span>';
                     if (line.startsWith('&gt;')) return '<span class="quote line">' + line.slice(5).trim() + '</span>';
+                    // 无序列表
+                    if (line.match(/^[\-\*] /)) {
+                        const content = line.slice(2);
+                        if (content.startsWith('[ ] ') || content.startsWith('[x] ') || content.startsWith('[X] ')) {
+                            const checked = content.startsWith('[x] ') || content.startsWith('[X] ');
+                            const itemContent = content.slice(4);
+                            return '<span class="task-item line">' + (checked ? '<input type="checkbox" disabled checked>' : '<input type="checkbox" disabled>') + ' ' + this.parseInline(itemContent) + '</span>';
+                        }
+                        return '<span class="ul-item line"><span class="ul-marker">•</span> ' + this.parseInline(content) + '</span>';
+                    }
+                    // 有序列表
+                    if (line.match(/^\d+\. /)) {
+                        const match = line.match(/^(\d+)\. (.*)/);
+                        return '<span class="ol-item line"><span class="ol-marker">' + match[1] + '.</span> ' + this.parseInline(match[2]) + '</span>';
+                    }
+                    // 水平线
+                    if (line.trim() === '---' || line.trim() === '***' || line.trim() === '___') {
+                        return '<hr class="hr-line">';
+                    }
+                    // 表格行
+                    if (line.startsWith('|') && line.endsWith('|')) {
+                        return this.parseTableRow(line);
+                    }
+                    // 目录
+                    if (line.trim() === '[TOC]') {
+                        return '<div class="toc">[TOC]</div>';
+                    }
                     return '<span class="line">' + this.parseInline(line) + '</span>';
                 }).join('\n');
                 return html;
             },
+            parseCodeBlocks(text) {
+                return text.replace(/```([\s\S]*?)```/g, (match, code) => {
+                    return '<pre class="code-block"><code>' + code.trim() + '</code></pre>';
+                });
+            },
+            parseTableRow(line) {
+                const cells = line.split('|').filter((c, i) => i > 0 && i < line.split('|').length - 1);
+                const isHeader = cells.some(c => c.trim().match(/^[\-\:]+$/));
+                if (isHeader) return '';
+                const row = cells.map(cell => '<td>' + this.parseInline(cell.trim()) + '</td>').join('');
+                return '<table class="table"><tr>' + row + '</tr></table>';
+            },
             parseInline(text) {
                 text = text.replace(/\x60\x60([^\x60]+)\x60\x60/g, '<span class="code">$1</span>');
+                text = text.replace(/==([^=]+)==/g, '<mark>$1</mark>');
                 text = text.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
                 text = text.replace(/(?<![^*])\*([^*]+)\*(?![^*])/g, '<i>$1</i>');
                 text = text.replace(/~~([^~]+)~~/g, '<s>$1</s>');
                 text = text.replace(/__([^_]+)__/g, '<u>$1</u>');
+                text = text.replace(/\$([^$]+)\$/g, '<span class="math">$1</span>');
+                text = text.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="img">');
                 text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="url" target="_blank">$1</a>');
+                text = text.replace(/\[\^(\d+)\]/g, '<sup class="footnote">[$1]</sup>');
                 return text;
             }
         };
@@ -356,16 +434,16 @@ function getDefaultTemplate(name, content) {
 
         function togglePreview() { showPreview = !showPreview; document.querySelector('.preview-pane').style.display = showPreview ? 'flex' : 'none'; }
 
-        function insertFormat(type) {
-            const format = Parser.formats[type];
-            if (!format) return;
-            if (['h1', 'h2', 'h3', 'quote'].includes(type)) {
+        function insertFormat(before, after) {
+            const isTitleOrQuote = before === '=== ' || before === '== ' || before === '= ' || before === '> ';
+
+            if (isTitleOrQuote) {
                 const start = editor.selectionStart;
                 const end = editor.selectionEnd;
                 const text = editor.value;
                 const lineStart = text.lastIndexOf('\n', start - 1) + 1;
                 let lineContent = text.substring(lineStart);
-                let newPrefix = type === 'h1' ? '=== ' : type === 'h2' ? '== ' : type === 'h3' ? '= ' : '> ';
+                let newPrefix = before;
 
                 const prefixPatterns = [
                     { regex: /^=== /, length: 4 },
@@ -399,21 +477,22 @@ function getDefaultTemplate(name, content) {
                 hasChanges = true; status.textContent = '未保存'; status.className = 'status'; updatePreview();
                 return;
             }
-            const start = editor.selectionStart, end = editor.selectionEnd;
-            const selected = editor.value.substring(start, end);
 
-            // 检查是否已存在该效果：完整包裹则取消，未闭合则补全
+            // 查找匹配的 markerPattern
             const markerPatterns = {
                 '<b>': { marker: '<b>', endMarker: '</b>' },
                 '<i>': { marker: '<i>', endMarker: '</i>' },
                 '<s>': { marker: '<s>', endMarker: '</s>' },
                 '<u>': { marker: '<u>', endMarker: '</u>' },
+                '<mark>': { marker: '<mark>', endMarker: '</mark>' },
                 '<span class="code">': { marker: '<span class="code">', endMarker: '</span>' }
             };
 
-            const pattern = markerPatterns[format.start];
-            let useStart = format.start;
-            let useEnd = format.end;
+            const pattern = markerPatterns[before];
+            const start = editor.selectionStart, end = editor.selectionEnd;
+            const selected = editor.value.substring(start, end);
+            let useStart = before;
+            let useEnd = after;
             let trimmed = selected.trim();
 
             if (pattern) {
@@ -461,7 +540,47 @@ function getDefaultTemplate(name, content) {
             finally { isSaving = false; }
         }
 
-        function format(type) { insertFormat(type); }
+        function format(type) {
+            const map = {
+                bold: ['**', '**'], italic: ['*', '*'], strike: ['~~', '~~'], underline: ['__', '__'],
+                highlight: ['==', '=='],
+                h1: ['=== ', ''], h2: ['== ', ''], h3: ['= ', ''], quote: ['> ', ''],
+                code: ['`', '`'], codeblock: ['```\n', '\n```'],
+                ul: ['- ', ''], ol: ['1. ', ''], task: ['[ ] ', ''],
+                link: ['[', '](url)'], image: ['![alt](', ')'],
+                table: ['| col1 | col2 |\n| --- | --- |\n| ', ' |'],
+                hr: ['---', ''],
+                math: ['$', '$']
+            };
+            const [before, after] = map[type] || ['', ''];
+
+            // 特殊处理：代码块在行首添加
+            if (type === 'codeblock') {
+                const start = editor.selectionStart;
+                const text = editor.value;
+                const lineStart = text.lastIndexOf('\n', start - 1) + 1;
+                editor.value = text.substring(0, lineStart) + before + editor.value.substring(lineStart);
+                editor.selectionStart = editor.selectionEnd = start + before.length;
+                editor.focus();
+                hasChanges = true; status.textContent = '未保存'; status.className = 'status'; updatePreview();
+                return;
+            }
+
+            // 特殊处理：表格
+            if (type === 'table') {
+                const start = editor.selectionStart;
+                const selected = editor.value.substring(start, editor.selectionEnd) || '内容';
+                const text = editor.value;
+                editor.value = text.substring(0, start) + before + selected + after + text.substring(start);
+                editor.selectionStart = start + before.length;
+                editor.selectionEnd = start + before.length + selected.length;
+                editor.focus();
+                hasChanges = true; status.textContent = '未保存'; status.className = 'status'; updatePreview();
+                return;
+            }
+
+            insertFormat(before, after);
+        }
 
         editor.addEventListener('input', () => { hasChanges = true; status.textContent = '未保存'; status.className = 'status'; updatePreview(); });
         themeToggle.addEventListener('click', toggleTheme);
