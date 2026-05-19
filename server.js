@@ -262,6 +262,11 @@ function getDefaultTemplate(name, content) {
         .editor-pane { display: none; }
         .editor-pane.show { display: flex; }
         .preview-pane { flex: 1; }
+        .preview-content { display: block; }
+        .preview-content.hidden { display: none; }
+        .preview-editor { display: none; width: 100%; height: 100%; min-height: calc(100vh - 140px); background: var(--bg-editor); border: none; color: var(--text-primary); font-size: 15px; line-height: 1.8; resize: none; font-family: monospace; }
+        .preview-editor.show { display: block; }
+        .preview-editor:focus { outline: none; }
         @media (max-width: 768px) { .main-container { flex-direction: column; } .preview-pane { display: none; } .toolbar { display: none; } }
     </style>
 </head>
@@ -313,6 +318,7 @@ function getDefaultTemplate(name, content) {
             <div class="pane-header">👁️ 预览</div>
             <div class="preview-wrapper">
                 <div class="preview-content" id="preview"></div>
+                <textarea id="previewEditor" class="preview-editor" placeholder="在这里直接编辑..."></textarea>
             </div>
         </div>
     </div>
@@ -442,7 +448,7 @@ function getDefaultTemplate(name, content) {
             }
         }
 
-        function updatePreview() { preview.innerHTML = Parser.parse(editor.value); }
+        function updatePreview() { preview.innerHTML = Parser.parse(editor.value); if (previewEditor) previewEditor.value = editor.value; }
 
         function togglePreview() { showPreview = !showPreview; document.querySelector('.preview-pane').style.display = showPreview ? 'flex' : 'none'; }
 
@@ -654,6 +660,36 @@ function getDefaultTemplate(name, content) {
 
         editor.addEventListener('input', () => { hasChanges = true; status.textContent = '未保存'; status.className = 'status'; updatePreview(); });
         themeToggle.addEventListener('click', toggleTheme);
+
+        // 预览区编辑
+        const previewEditor = document.getElementById('previewEditor');
+        const preview = document.getElementById('preview');
+        if (previewEditor && preview) {
+            previewEditor.addEventListener('input', () => {
+                hasChanges = true; status.textContent = '未保存'; status.className = 'status';
+                editor.value = previewEditor.value;
+                preview.innerHTML = Parser.parse(previewEditor.value);
+            });
+            previewEditor.addEventListener('blur', () => {
+                previewEditor.classList.remove('show');
+                preview.classList.remove('hidden');
+                preview.innerHTML = Parser.parse(previewEditor.value);
+            });
+        }
+
+        // 点击预览标题栏进入编辑模式
+        const previewPaneHeader = document.querySelector('.preview-pane .pane-header');
+        if (previewPaneHeader) {
+            previewPaneHeader.style.cursor = 'pointer';
+            previewPaneHeader.addEventListener('click', () => {
+                if (previewEditor && preview) {
+                    previewEditor.classList.add('show');
+                    preview.classList.add('hidden');
+                    previewEditor.value = editor.value;
+                    previewEditor.focus();
+                }
+            });
+        }
 
         // 工具栏切换
         const toolbarToggle = document.getElementById('toolbarToggle');
