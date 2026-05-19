@@ -288,6 +288,148 @@
             }
         };
 
+        // 自动格式化模块
+        const AutoFormat = {
+            config: {
+                debounceDelay: 150,
+                indentHeadingMap: {
+                    0: '=== ',
+                    2: '== ',
+                    4: '= '
+                },
+                chapterKeywords: [
+                    /^第.+章/,
+                    /^Chapter\s+\d+/i,
+                    /^第\d+章/,
+                    /^第[一二三四五六七八九十百千零〇]+章/
+                ],
+                codePatterns: {
+                    python: [/^def\s+\w+/, /^class\s+\w+/, /^import\s+\w+/, /^from\s+\w+/, /^print\s*\(/, /^if\s+.+:/, /^for\s+.+:/, /^while\s+.+:/, /^elif\s+.+:/, /^else\s*:/, /^try\s*:/, /^except\s*.+:/, /^with\s+.+:/],
+                    javascript: [/^function\s+\w+/, /^const\s+\w+\s*=/, /^let\s+\w+\s*=/, /^var\s+\w+\s*=/, /^\w+\s*=>\s*[{(]/, /^class\s+\w+/, /^import\s+.+from/, /^export\s+/, /^console\.\w+/, /^if\s*\(.+\)/, /^for\s*\(.+\)/, /^while\s*\(.+\)/, /^async\s+function/, /^await\s+/],
+                    java: [/^public\s+class\s+/, /^private\s+class\s+/, /^protected\s+/, /^public\s+static\s+void\s+main/, /^System\.out\./, /^import\s+java\./, /^package\s+/, /^public\s+\w+\s*\(/, /^private\s+\w+\s*\(/],
+                    c: [/^#include\s*</, /^#define\s+/, /^int\s+main\s*\(/, /^void\s+\w+\s*\(/, /^char\s+\w+\s*\[/, /^int\s+\w+\s*=/, /^float\s+\w+\s*=/, /^double\s+\w+\s*=/, /^struct\s+\w+/, /^typedef\s+/],
+                    cpp: [/^#include\s*</, /^#include\s*"/, /^using\s+namespace\s+/, /^std::/, /^class\s+\w+\s*[:{]/, /^public:/, /^private:/, /^protected:/, /^virtual\s+\w+/],
+                    go: [/^package\s+\w+/, /^func\s+\w+/, /^import\s+\(/, /^type\s+\w+\s+struct/, /^type\s+\w+\s+interface/, /^func\s*\(/, /^go\s+func/, /^defer\s+/],
+                    rust: [/^fn\s+\w+/, /^let\s+mut\s+/, /^let\s+\w+\s*:/, /^impl\s+\w+/, /^struct\s+\w+/, /^enum\s+\w+/, /^pub\s+fn/, /^use\s+\w+::/, /^mod\s+\w+/, /^impl\s+\w+\s+for/],
+                    sql: [/^SELECT\s+/i, /^FROM\s+/i, /^WHERE\s+/i, /^INSERT\s+INTO/i, /^UPDATE\s+\w+\s+SET/i, /^CREATE\s+TABLE/i, /^ALTER\s+TABLE/i, /^DROP\s+TABLE/i, /^JOIN\s+/i],
+                    shell: [/^#!/, /^echo\s+/, /^export\s+\w+=/, /^if\s+\[\s+/, /^for\s+\w+\s+in/, /^while\s+/, /^\$\w+/, /^source\s+/]
+                }
+            },
+
+            getIndent(line) {
+                return line.match(/^(\s*)/)[1].length;
+            },
+
+            isFormatted(line) {
+                const trimmed = line.trim();
+                return trimmed.startsWith('===') || trimmed.startsWith('== ') || trimmed.startsWith('= ') || trimmed.startsWith('```') || trimmed.startsWith('> ') || trimmed.startsWith('- ') || /^\d+\.\s/.test(trimmed);
+            },
+
+            detectHeadingByIndent(line) {
+                const trimmed = line.trim();
+                if (!trimmed || this.isFormatted(line)) return null;
+                const indent = this.getIndent(line);
+                const marker = this.config.indentHeadingMap[indent];
+                if (marker) {
+                    return { marker, content: line };
+                }
+                return null;
+            },
+
+            detectChapterKeyword(line) {
+                const trimmed = line.trim();
+                if (!trimmed || this.isFormatted(line)) return null;
+                for (const pattern of this.config.chapterKeywords) {
+                    if (pattern.test(trimmed)) {
+                        return { marker: '=== ', content: line };
+                    }
+                }
+                return null;
+            },
+
+            detectCodePattern(line) {
+                const trimmed = line.trim();
+                if (!trimmed || this.isFormatted(line)) return null;
+                for (const [lang, patterns] of Object.entries(this.config.codePatterns)) {
+                    for (const pattern of patterns) {
+                        if (pattern.test(trimmed)) {
+                            return { language: lang, line: trimmed };
+                        }
+                    }
+                }
+                return null;
+            },
+
+            getCurrentLine(textarea) {
+                const pos = textarea.selectionStart;
+                const text = textarea.value;
+                const lineStart = text.lastIndexOf('\n', pos - 1) + 1;
+                const lineEnd = text.indexOf('\n', pos);
+                return {
+                    line: text.substring(lineStart, lineEnd === -1 ? text.length : lineEnd),
+                    lineStart,
+                    lineEnd: lineEnd === -1 ? text.length : lineEnd
+                };
+            },
+
+            applyHeading(textarea, lineStart, marker, content) {
+                const text = textarea.value;
+                const before = text.substring(0, lineStart);
+                const after = text.substring(lineStart + content.length);
+                textarea.value = before + marker + content + after;
+                const newPos = lineStart + marker.length + content.length;
+                textarea.selectionStart = textarea.selectionEnd = newPos;
+            },
+
+            applyCodeBlock(textarea, lineStart, lineEnd, language, line) {
+                const text = textarea.value;
+                const before = text.substring(0, lineStart);
+                const after = text.substring(lineEnd);
+                const codeBlock = '```' + language + '\n' + line.trim() + '\n```';
+                textarea.value = before + codeBlock + after;
+                textarea.selectionStart = textarea.selectionEnd = before.length + 4 + language.length + line.trim().length + 5;
+            },
+
+            checkAndFormat(textarea) {
+                const { line, lineStart, lineEnd } = this.getCurrentLine(textarea);
+                const trimmed = line.trim();
+                if (!trimmed) return;
+
+                // 检查代码模式
+                const codeResult = this.detectCodePattern(line);
+                if (codeResult) {
+                    this.applyCodeBlock(textarea, lineStart, lineEnd, codeResult.language, line);
+                    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+                    return;
+                }
+
+                // 检查章节关键词
+                const chapterResult = this.detectChapterKeyword(line);
+                if (chapterResult) {
+                    this.applyHeading(textarea, lineStart, chapterResult.marker, chapterResult.content);
+                    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+                    return;
+                }
+
+                // 检查缩进标题
+                const headingResult = this.detectHeadingByIndent(line);
+                if (headingResult) {
+                    this.applyHeading(textarea, lineStart, headingResult.marker, headingResult.content);
+                    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            },
+
+            install(textarea) {
+                let debounceTimer;
+                textarea.addEventListener('input', () => {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(() => {
+                        this.checkAndFormat(textarea);
+                    }, this.config.debounceDelay);
+                });
+            }
+        };
+
         const Editor = {
             noteName: '',
             hasChanges: false,
@@ -309,6 +451,7 @@
 
                 this.loadTheme();
                 this.bindEvents();
+                AutoFormat.install(this.elements.editor);
                 this.loadNote();
             },
 
