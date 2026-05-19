@@ -258,9 +258,9 @@ function getDefaultTemplate(name, content) {
         .toolbar-toggle:hover { background: var(--accent); color: white; }
         .edit-toggle { background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-primary); padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }
         .edit-toggle:hover { background: var(--accent); color: white; }
-        /* 编辑器默认隐藏，切换显示 */
-        .editor-pane { display: none; }
-        .editor-pane.show { display: flex; }
+        /* 编辑器默认显示 */
+        .editor-pane { display: flex; }
+        .editor-pane.hide { display: none; }
         .preview-pane { flex: 1; }
         @media (max-width: 768px) { .main-container { flex-direction: column; } .preview-pane { display: none; } .toolbar { display: none; } }
     </style>
@@ -273,7 +273,7 @@ function getDefaultTemplate(name, content) {
         </div>
         <button class="toolbar-toggle" id="toolbarToggle">⚙ 工具栏</button>
         <button class="edit-toggle" id="editToggle">✏️ 编辑</button>
-        <div class="toolbar hide" id="toolbar">
+        <div class="toolbar" id="toolbar">
             <button class="toolbar-btn" onclick="format('bold')" title="加粗"><b>B</b></button>
             <button class="toolbar-btn" onclick="format('italic')" title="斜体"><i>I</i></button>
             <button class="toolbar-btn" onclick="format('strike')" title="删除线"><s>S</s></button>
@@ -669,7 +669,7 @@ function getDefaultTemplate(name, content) {
         const editorPane = document.querySelector('.editor-pane');
         if (editToggle && editorPane) {
             editToggle.addEventListener('click', () => {
-                editorPane.classList.toggle('show');
+                editorPane.classList.toggle('hide');
             });
         }
 
