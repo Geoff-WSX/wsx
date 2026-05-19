@@ -421,9 +421,7 @@ function getDefaultTemplate(name, content) {
         // 自动格式化模块
         const AutoFormat = {
             config: {
-                debounceDelay: 150,
                 indentHeadingMap: {
-                    0: '=== ',
                     2: '== ',
                     4: '= '
                 },
