@@ -562,40 +562,46 @@ function getDefaultTemplate(name, content) {
             const start = editor.selectionStart;
             const end = editor.selectionEnd;
             const text = editor.value;
-            const selected = text.substring(start, end);
-
-            // 行级格式的前缀检测
-            const lineStart = text.lastIndexOf('\n', start - 1) + 1;
-            const lineContent = text.substring(lineStart);
+            const selected = text.substring(start, end) || '文字';
 
             // 行级格式处理（标题、引用、代码块、水平线、列表）
             if (type === 'codeblock' || type === 'hr' || type === 'ul' || type === 'ol' || type === 'task' ||
                 type === 'h1' || type === 'h2' || type === 'h3' || type === 'quote') {
                 const map = {
-                    codeblock: { marker: '```\n', endMarker: '\n```', regex: /^```/, toggle: false },
-                    hr: { marker: '---', endMarker: '', regex: /^---$/, toggle: true },
-                    ul: { marker: '- ', endMarker: '', regex: /^[\-\*] /, toggle: true },
-                    ol: { marker: '1. ', endMarker: '', regex: /^\d+\. /, toggle: true },
-                    task: { marker: '[ ] ', endMarker: '', regex: /^\[ \] /, toggle: true },
-                    h1: { marker: '=== ', endMarker: '', regex: /^=== /, toggle: true },
-                    h2: { marker: '== ', endMarker: '', regex: /^== /, toggle: true },
-                    h3: { marker: '= ', endMarker: '', regex: /^= /, toggle: true },
-                    quote: { marker: '> ', endMarker: '', regex: /^> /, toggle: true }
+                    codeblock: { marker: '```\n', endMarker: '\n```', regex: /^```/ },
+                    hr: { marker: '---', endMarker: '', regex: /^---$/ },
+                    ul: { marker: '- ', endMarker: '', regex: /^[\-\*] / },
+                    ol: { marker: '1. ', endMarker: '', regex: /^\d+\. / },
+                    task: { marker: '[ ] ', endMarker: '', regex: /^\[ \] / },
+                    h1: { marker: '=== ', endMarker: '', regex: /^=== / },
+                    h2: { marker: '== ', endMarker: '', regex: /^== / },
+                    h3: { marker: '= ', endMarker: '', regex: /^= / },
+                    quote: { marker: '> ', endMarker: '', regex: /^> / }
                 };
                 const cfg = map[type];
                 if (!cfg) return;
 
+                const lineStart = text.lastIndexOf('\n', start - 1) + 1;
+                const lineContent = text.substring(lineStart);
+
                 // 检测是否已存在该行级格式
                 if (cfg.regex.test(lineContent)) {
-                    // 取消：移除前缀
+                    // 取消：移除整行格式
                     const prefixLen = lineContent.match(cfg.regex)[0].length;
                     editor.value = text.substring(0, lineStart) + lineContent.substring(prefixLen) + text.substring(lineStart + lineContent.length);
                     editor.selectionStart = editor.selectionEnd = lineStart;
                 } else {
-                    // 添加：在行首添加前缀
-                    const newMarker = cfg.marker;
-                    editor.value = text.substring(0, lineStart) + newMarker + text.substring(lineStart);
-                    editor.selectionStart = editor.selectionEnd = lineStart + newMarker.length;
+                    // 添加完整格式
+                    if (type === 'codeblock') {
+                        // 代码块特殊处理：添加完整代码块结构
+                        editor.value = text.substring(0, lineStart) + '```\n' + selected + '\n```' + text.substring(end);
+                        editor.selectionStart = lineStart + 4;
+                        editor.selectionEnd = lineStart + 4 + selected.length;
+                    } else {
+                        editor.value = text.substring(0, lineStart) + cfg.marker + selected + text.substring(end);
+                        editor.selectionStart = lineStart + cfg.marker.length;
+                        editor.selectionEnd = lineStart + cfg.marker.length + selected.length;
+                    }
                 }
                 editor.focus();
                 hasChanges = true; status.textContent = '未保存'; status.className = 'status'; updatePreview();
@@ -612,38 +618,48 @@ function getDefaultTemplate(name, content) {
             if (!formatMap[type]) return;
 
             const [before, after] = formatMap[type];
-            const markerPatterns = {
-                '**': { marker: '**', endMarker: '**' },
-                '*': { marker: '*', endMarker: '*' },
-                '~~': { marker: '~~', endMarker: '~~' },
-                '__': { marker: '__', endMarker: '__' },
-                '==': { marker: '==', endMarker: '==' },
-                '`': { marker: '`', endMarker: '`' }
-            };
-
-            const pattern = markerPatterns[before];
             let useBefore = before;
             let useAfter = after;
             let content = selected;
 
-            // 检测是否完整包裹
-            const trimmed = content.trim();
-            if (pattern && trimmed.startsWith(pattern.marker) && trimmed.endsWith(pattern.endMarker)) {
-                // 取消效果
-                content = trimmed.substring(pattern.marker.length, trimmed.length - pattern.endMarker.length);
-                useBefore = '';
-                useAfter = '';
-            } else if (pattern && trimmed.startsWith(pattern.marker)) {
-                // 补全效果
-                content = trimmed.substring(pattern.marker.length);
-                useBefore = pattern.marker;
-                useAfter = pattern.endMarker;
+            // 行内代码特殊处理：检测光标前后是否有 `
+            if (type === 'code') {
+                const beforeChar = start > 0 ? text[start - 1] : '';
+                const afterChar = end < text.length ? text[end] : '';
+                if (beforeChar === '`' || afterChar === '`') {
+                    editor.focus();
+                    return;
+                }
+                if (selected === '文字') {
+                    content = '';
+                }
             }
 
-            // 构建新文本
-            const beforeText = text.substring(0, start);
-            const afterText = text.substring(end);
-            editor.value = beforeText + useBefore + content + useAfter + afterText;
+            // 检测是否完整包裹（只有当选中内容时才检测）
+            if (selected && selected.trim()) {
+                const trimmed = content.trim();
+                // 检查是否已经被当前标记包裹
+                if (trimmed.startsWith(before) && trimmed.endsWith(after)) {
+                    // 取消效果：移除包裹
+                    content = trimmed.substring(before.length, trimmed.length - after.length);
+                    useBefore = '';
+                    useAfter = '';
+                } else {
+                    // 添加效果：检查是否有其他包裹格式，有则先移除
+                    const otherMarkers = ['**', '*', '~~', '__', '==', '`'];
+                    for (const m of otherMarkers) {
+                        if (m !== before && trimmed.startsWith(m) && trimmed.endsWith(m)) {
+                            content = trimmed.substring(m.length, trimmed.length - m.length);
+                            break;
+                        }
+                    }
+                }
+            } else {
+                // 没有选中文本，只添加标记
+                content = '';
+            }
+
+            editor.value = text.substring(0, start) + useBefore + content + useAfter + text.substring(end);
 
             // 设置选区
             if (useBefore !== '') {
