@@ -256,6 +256,9 @@ function getDefaultTemplate(name, content) {
         .toolbar.show { display: flex; }
         .toolbar-toggle { background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-primary); padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }
         .toolbar-toggle:hover { background: var(--accent); color: white; }
+        /* 编辑器默认隐藏，只显示预览 */
+        .editor-pane { display: none; }
+        .preview-pane { flex: 1; }
         @media (max-width: 768px) { .main-container { flex-direction: column; } .preview-pane { display: none; } .toolbar { display: none; } }
     </style>
 </head>
@@ -265,7 +268,7 @@ function getDefaultTemplate(name, content) {
             <h1>📝 wsx</h1>
             <span class="note-name">${escapeHtml(name)}</span>
         </div>
-        <button class="toolbar-toggle" id="toolbarToggle">⚡ 格式</button>
+        <button class="toolbar-toggle" id="toolbarToggle">⚙ 工具栏</button>
         <div class="toolbar" id="toolbar">
             <button class="toolbar-btn" onclick="format('bold')" title="加粗"><b>B</b></button>
             <button class="toolbar-btn" onclick="format('italic')" title="斜体"><i>I</i></button>
