@@ -422,22 +422,25 @@ function getDefaultTemplate(name, content) {
                     trimmed = trimmed.substring(pattern.marker.length, trimmed.length - pattern.endMarker.length);
                     useStart = '';
                     useEnd = '';
-                    console.log('取消效果:', format.start, '-> 剩余:', trimmed);
                 }
                 // 未闭合（如 <b>hello）：补全效果
                 else if (trimmed.startsWith(pattern.marker)) {
                     useStart = pattern.marker;
                     useEnd = pattern.endMarker;
                     trimmed = trimmed.substring(pattern.marker.length);
-                    console.log('补全效果:', format.start, '-> 内容:', trimmed);
-                } else {
-                    console.log('添加效果:', format.start, '-> 内容:', trimmed);
                 }
             }
 
             editor.value = editor.value.substring(0, start) + useStart + trimmed + useEnd + editor.value.substring(end);
-            editor.selectionStart = start + useStart.length;
-            editor.selectionEnd = start + useStart.length + trimmed.length;
+
+            // 如果是添加/补全效果，选中包含标记的完整内容；如果是取消效果，只选中内容
+            if (useStart !== '') {
+                editor.selectionStart = start;
+                editor.selectionEnd = start + useStart.length + trimmed.length + useEnd.length;
+            } else {
+                editor.selectionStart = start;
+                editor.selectionEnd = start + trimmed.length;
+            }
             editor.focus();
             hasChanges = true; status.textContent = '未保存'; status.className = 'status'; updatePreview();
         }

@@ -321,22 +321,25 @@
                             trimmed = trimmed.substring(pattern.marker.length, trimmed.length - pattern.endMarker.length);
                             useBefore = '';
                             useAfter = '';
-                            console.log('取消效果:', before, '-> 剩余:', trimmed);
                         }
                         // 未闭合（如 **hello）：补全效果
                         else if (trimmed.startsWith(pattern.marker)) {
                             useBefore = pattern.marker;
                             useAfter = pattern.endMarker;
                             trimmed = trimmed.substring(pattern.marker.length);
-                            console.log('补全效果:', before, '-> 内容:', trimmed);
-                        } else {
-                            console.log('添加效果:', before, '-> 内容:', trimmed);
                         }
                     }
 
                     editor.value = text.substring(0, start) + useBefore + trimmed + useAfter + text.substring(end);
-                    editor.selectionStart = start + useBefore.length;
-                    editor.selectionEnd = start + useBefore.length + trimmed.length;
+
+                    // 如果是添加/补全效果，选中包含标记的完整内容；如果是取消效果，只选中内容
+                    if (useBefore !== '') {
+                        editor.selectionStart = start;
+                        editor.selectionEnd = start + useBefore.length + trimmed.length + useAfter.length;
+                    } else {
+                        editor.selectionStart = start;
+                        editor.selectionEnd = start + trimmed.length;
+                    }
                 }
                 editor.focus();
 
