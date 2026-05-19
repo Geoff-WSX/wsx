@@ -10,7 +10,12 @@
     "start": "node cli.js",
     "server": "node server.js"
   },
-  "keywords": ["note", "cli", "markdown", "wsx"],
+  "keywords": [
+    "note",
+    "cli",
+    "markdown",
+    "wsx"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
@@ -23,5 +28,8 @@
   },
   "engines": {
     "node": ">=16.0.0"
+  },
+  "devDependencies": {
+    "playwright": "^1.60.0"
   }
 }

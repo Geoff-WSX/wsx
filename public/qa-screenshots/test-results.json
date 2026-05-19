@@ -1,0 +1,155 @@
+{
+  "timestamp": "2026-05-19T03:08:42.615Z",
+  "tests": [
+    {
+      "name": "Page Load",
+      "status": "PASS",
+      "details": "Editor loaded successfully"
+    },
+    {
+      "name": "Text Entry",
+      "status": "PASS",
+      "details": "Text entered and selected"
+    },
+    {
+      "name": "Bold Apply",
+      "status": "PASS",
+      "details": "Text wrapped with ** markers"
+    },
+    {
+      "name": "Bold Toggle Off",
+      "status": "PASS",
+      "details": "Bold markers removed"
+    },
+    {
+      "name": "Italic Apply",
+      "status": "PASS",
+      "details": "Text wrapped with * markers"
+    },
+    {
+      "name": "Italic Toggle Off",
+      "status": "PASS",
+      "details": "Italic markers removed"
+    },
+    {
+      "name": "Strikethrough Apply",
+      "status": "PASS",
+      "details": "Text wrapped with ~~ markers"
+    },
+    {
+      "name": "Underline Apply",
+      "status": "PASS",
+      "details": "Text wrapped with __ markers"
+    },
+    {
+      "name": "Highlight Apply",
+      "status": "PASS",
+      "details": "Text wrapped with == markers"
+    },
+    {
+      "name": "Inline Code Apply",
+      "status": "PASS",
+      "details": "Text wrapped with ` markers"
+    },
+    {
+      "name": "Code Block Add",
+      "status": "FAIL",
+      "details": "Expected code block, got: ```\n"
+    },
+    {
+      "name": "Code Block Toggle Off",
+      "status": "FAIL",
+      "details": "Code block markers still present"
+    },
+    {
+      "name": "Horizontal Line Add",
+      "status": "PASS",
+      "details": "--- added"
+    },
+    {
+      "name": "Horizontal Line Toggle Off",
+      "status": "PASS",
+      "details": "--- removed"
+    },
+    {
+      "name": "Unordered List Add",
+      "status": "PASS",
+      "details": "- marker added"
+    },
+    {
+      "name": "Unordered List Toggle Off",
+      "status": "PASS",
+      "details": "- marker removed"
+    },
+    {
+      "name": "Ordered List Add",
+      "status": "PASS",
+      "details": "1. marker added"
+    },
+    {
+      "name": "Ordered List Toggle Off",
+      "status": "PASS",
+      "details": "1. marker removed"
+    },
+    {
+      "name": "Task List Add",
+      "status": "PASS",
+      "details": "[ ] marker added"
+    },
+    {
+      "name": "H1 Apply",
+      "status": "FAIL",
+      "details": "Expected === or == , got: 测试标题"
+    },
+    {
+      "name": "H2 Switch",
+      "status": "FAIL",
+      "details": "Expected == , got: 测试标题"
+    },
+    {
+      "name": "Preview Bold",
+      "status": "PASS",
+      "details": "Bold text rendered in preview"
+    },
+    {
+      "name": "Preview Italic",
+      "status": "PASS",
+      "details": "Italic text rendered in preview"
+    },
+    {
+      "name": "Preview Code Block",
+      "status": "PASS",
+      "details": "Code block rendered in preview"
+    },
+    {
+      "name": "Preview Link",
+      "status": "PASS",
+      "details": "Link rendered in preview"
+    },
+    {
+      "name": "Preview Image",
+      "status": "PASS",
+      "details": "Image rendered in preview"
+    },
+    {
+      "name": "Preview Table",
+      "status": "PASS",
+      "details": "Table rendered in preview"
+    },
+    {
+      "name": "Preview Math",
+      "status": "PASS",
+      "details": "Math formula rendered in preview"
+    },
+    {
+      "name": "Theme Toggle",
+      "status": "PASS",
+      "details": "Switched to dark theme"
+    },
+    {
+      "name": "Theme Toggle Back",
+      "status": "PASS",
+      "details": "Switched back to light theme"
+    }
+  ]
+}

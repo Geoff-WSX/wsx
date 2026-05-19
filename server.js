@@ -550,14 +550,19 @@ function getDefaultTemplate(name, content) {
             const lineStart = text.lastIndexOf('\n', start - 1) + 1;
             const lineContent = text.substring(lineStart);
 
-            // 行级格式处理（代码块、水平线、列表）
-            if (type === 'codeblock' || type === 'hr' || type === 'ul' || type === 'ol' || type === 'task') {
+            // 行级格式处理（标题、引用、代码块、水平线、列表）
+            if (type === 'codeblock' || type === 'hr' || type === 'ul' || type === 'ol' || type === 'task' ||
+                type === 'h1' || type === 'h2' || type === 'h3' || type === 'quote') {
                 const map = {
-                    codeblock: { marker: '```\n', endMarker: '\n```', regex: /^```/ },
-                    hr: { marker: '---', endMarker: '', regex: /^---$/ },
-                    ul: { marker: '- ', endMarker: '', regex: /^[\-\*] / },
-                    ol: { marker: '1. ', endMarker: '', regex: /^\d+\. / },
-                    task: { marker: '[ ] ', endMarker: '', regex: /^\[ \] / }
+                    codeblock: { marker: '```\n', endMarker: '\n```', regex: /^```/, toggle: false },
+                    hr: { marker: '---', endMarker: '', regex: /^---$/, toggle: true },
+                    ul: { marker: '- ', endMarker: '', regex: /^[\-\*] /, toggle: true },
+                    ol: { marker: '1. ', endMarker: '', regex: /^\d+\. /, toggle: true },
+                    task: { marker: '[ ] ', endMarker: '', regex: /^\[ \] /, toggle: true },
+                    h1: { marker: '=== ', endMarker: '', regex: /^=== /, toggle: true },
+                    h2: { marker: '== ', endMarker: '', regex: /^== /, toggle: true },
+                    h3: { marker: '= ', endMarker: '', regex: /^= /, toggle: true },
+                    quote: { marker: '> ', endMarker: '', regex: /^> /, toggle: true }
                 };
                 const cfg = map[type];
                 if (!cfg) return;
@@ -570,9 +575,9 @@ function getDefaultTemplate(name, content) {
                     editor.selectionStart = editor.selectionEnd = lineStart;
                 } else {
                     // 添加：在行首添加前缀
-                    const marker = type === 'ol' ? '1. ' : (type === 'task' ? '[ ] ' : cfg.marker);
-                    editor.value = text.substring(0, lineStart) + marker + text.substring(lineStart);
-                    editor.selectionStart = editor.selectionEnd = lineStart + marker.length;
+                    const newMarker = cfg.marker;
+                    editor.value = text.substring(0, lineStart) + newMarker + text.substring(lineStart);
+                    editor.selectionStart = editor.selectionEnd = lineStart + newMarker.length;
                 }
                 editor.focus();
                 hasChanges = true; status.textContent = '未保存'; status.className = 'status'; updatePreview();
