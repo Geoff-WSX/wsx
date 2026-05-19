@@ -264,8 +264,8 @@ function getDefaultTemplate(name, content) {
         .preview-pane { flex: 1; }
         .preview-content { display: block; }
         .preview-content.hidden { display: none; }
-        .preview-editor { display: none; width: 100%; height: 100%; min-height: calc(100vh - 140px); background: var(--bg-editor); border: none; color: var(--text-primary); font-size: 15px; line-height: 1.8; resize: none; font-family: monospace; }
-        .preview-editor.show { display: block; }
+        .preview-editor { display: none; width: 100%; height: 100%; min-height: calc(100vh - 140px); background: var(--bg-editor); border: none; color: var(--text-primary); font-size: 15px; line-height: 1.8; resize: none; font-family: monospace; padding: 16px; box-sizing: border-box; }
+        .preview-editor.show { display: block !important; }
         .preview-editor:focus { outline: none; }
         @media (max-width: 768px) { .main-container { flex-direction: column; } .preview-pane { display: none; } .toolbar { display: none; } }
     </style>
