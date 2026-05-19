@@ -268,12 +268,12 @@ function getDefaultTemplate(name, content) {
             <button class="toolbar-btn" onclick="format('underline')" title="下划线"><u>U</u></button>
             <button class="toolbar-btn" onclick="format('highlight')" title="高亮"><mark>H</mark></button>
             <div class="toolbar-sep"></div>
-            <button class="toolbar-btn" onclick="format('h1')">H1</button>
-            <button class="toolbar-btn" onclick="format('h2')">H2</button>
-            <button class="toolbar-btn" onclick="format('h3')">H3</button>
+            <button class="toolbar-btn" onclick="format('h1')" title="一级标题">H1</button>
+            <button class="toolbar-btn" onclick="format('h2')" title="二级标题">H2</button>
+            <button class="toolbar-btn" onclick="format('h3')" title="三级标题">H3</button>
             <div class="toolbar-sep"></div>
-            <button class="toolbar-btn" onclick="format('quote')">❝</button>
-            <button class="toolbar-btn" onclick="format('code')">code</button>
+            <button class="toolbar-btn" onclick="format('quote')" title="引用">❝</button>
+            <button class="toolbar-btn" onclick="format('code')" title="行内代码">code</button>
             <button class="toolbar-btn" onclick="format('codeblock')" title="代码块">```</button>
             <div class="toolbar-sep"></div>
             <button class="toolbar-btn" onclick="format('ul')" title="无序列表">•</button>
@@ -541,45 +541,98 @@ function getDefaultTemplate(name, content) {
         }
 
         function format(type) {
-            const map = {
-                bold: ['**', '**'], italic: ['*', '*'], strike: ['~~', '~~'], underline: ['__', '__'],
-                highlight: ['==', '=='],
-                h1: ['=== ', ''], h2: ['== ', ''], h3: ['= ', ''], quote: ['> ', ''],
-                code: ['`', '`'], codeblock: ['```\n', '\n```'],
-                ul: ['- ', ''], ol: ['1. ', ''], task: ['[ ] ', ''],
-                link: ['[', '](url)'], image: ['![alt](', ')'],
-                table: ['| col1 | col2 |\n| --- | --- |\n| ', ' |'],
-                hr: ['---', ''],
-                math: ['$', '$']
+            const start = editor.selectionStart;
+            const end = editor.selectionEnd;
+            const text = editor.value;
+            const selected = text.substring(start, end);
+
+            // 行级格式的前缀检测
+            const lineStart = text.lastIndexOf('\n', start - 1) + 1;
+            const lineContent = text.substring(lineStart);
+
+            // 行级格式处理（代码块、水平线、列表）
+            if (type === 'codeblock' || type === 'hr' || type === 'ul' || type === 'ol' || type === 'task') {
+                const map = {
+                    codeblock: { marker: '```\n', endMarker: '\n```', regex: /^```/ },
+                    hr: { marker: '---', endMarker: '', regex: /^---$/ },
+                    ul: { marker: '- ', endMarker: '', regex: /^[\-\*] / },
+                    ol: { marker: '1. ', endMarker: '', regex: /^\d+\. / },
+                    task: { marker: '[ ] ', endMarker: '', regex: /^\[ \] / }
+                };
+                const cfg = map[type];
+                if (!cfg) return;
+
+                // 检测是否已存在该行级格式
+                if (cfg.regex.test(lineContent)) {
+                    // 取消：移除前缀
+                    const prefixLen = lineContent.match(cfg.regex)[0].length;
+                    editor.value = text.substring(0, lineStart) + lineContent.substring(prefixLen) + text.substring(lineStart + lineContent.length);
+                    editor.selectionStart = editor.selectionEnd = lineStart;
+                } else {
+                    // 添加：在行首添加前缀
+                    const marker = type === 'ol' ? '1. ' : (type === 'task' ? '[ ] ' : cfg.marker);
+                    editor.value = text.substring(0, lineStart) + marker + text.substring(lineStart);
+                    editor.selectionStart = editor.selectionEnd = lineStart + marker.length;
+                }
+                editor.focus();
+                hasChanges = true; status.textContent = '未保存'; status.className = 'status'; updatePreview();
+                return;
+            }
+
+            // 包裹式格式处理
+            const formatMap = {
+                bold: ['**', '**'], italic: ['*', '*'], strike: ['~~', '~~'],
+                underline: ['__', '__'], highlight: ['==', '=='],
+                code: ['`', '`']
             };
-            const [before, after] = map[type] || ['', ''];
 
-            // 特殊处理：代码块在行首添加
-            if (type === 'codeblock') {
-                const start = editor.selectionStart;
-                const text = editor.value;
-                const lineStart = text.lastIndexOf('\n', start - 1) + 1;
-                editor.value = text.substring(0, lineStart) + before + editor.value.substring(lineStart);
-                editor.selectionStart = editor.selectionEnd = start + before.length;
-                editor.focus();
-                hasChanges = true; status.textContent = '未保存'; status.className = 'status'; updatePreview();
-                return;
+            if (!formatMap[type]) return;
+
+            const [before, after] = formatMap[type];
+            const markerPatterns = {
+                '**': { marker: '**', endMarker: '**' },
+                '*': { marker: '*', endMarker: '*' },
+                '~~': { marker: '~~', endMarker: '~~' },
+                '__': { marker: '__', endMarker: '__' },
+                '==': { marker: '==', endMarker: '==' },
+                '`': { marker: '`', endMarker: '`' }
+            };
+
+            const pattern = markerPatterns[before];
+            let useBefore = before;
+            let useAfter = after;
+            let content = selected;
+
+            // 检测是否完整包裹
+            const trimmed = content.trim();
+            if (pattern && trimmed.startsWith(pattern.marker) && trimmed.endsWith(pattern.endMarker)) {
+                // 取消效果
+                content = trimmed.substring(pattern.marker.length, trimmed.length - pattern.endMarker.length);
+                useBefore = '';
+                useAfter = '';
+            } else if (pattern && trimmed.startsWith(pattern.marker)) {
+                // 补全效果
+                content = trimmed.substring(pattern.marker.length);
+                useBefore = pattern.marker;
+                useAfter = pattern.endMarker;
             }
 
-            // 特殊处理：表格
-            if (type === 'table') {
-                const start = editor.selectionStart;
-                const selected = editor.value.substring(start, editor.selectionEnd) || '内容';
-                const text = editor.value;
-                editor.value = text.substring(0, start) + before + selected + after + text.substring(start);
-                editor.selectionStart = start + before.length;
-                editor.selectionEnd = start + before.length + selected.length;
-                editor.focus();
-                hasChanges = true; status.textContent = '未保存'; status.className = 'status'; updatePreview();
-                return;
-            }
+            // 构建新文本
+            const beforeText = text.substring(0, start);
+            const afterText = text.substring(end);
+            editor.value = beforeText + useBefore + content + useAfter + afterText;
 
-            insertFormat(before, after);
+            // 设置选区
+            if (useBefore !== '') {
+                editor.selectionStart = start;
+                editor.selectionEnd = start + useBefore.length + content.length + useAfter.length;
+            } else {
+                editor.selectionStart = start;
+                editor.selectionEnd = start + content.length;
+            }
+            editor.focus();
+
+            hasChanges = true; status.textContent = '未保存'; status.className = 'status'; updatePreview();
         }
 
         editor.addEventListener('input', () => { hasChanges = true; status.textContent = '未保存'; status.className = 'status'; updatePreview(); });
@@ -587,9 +640,9 @@ function getDefaultTemplate(name, content) {
         document.addEventListener('keydown', (e) => {
             if (e.ctrlKey || e.metaKey) {
                 if (e.key.toLowerCase() === 's') { e.preventDefault(); save(); }
-                if (e.key.toLowerCase() === 'b') { e.preventDefault(); insertFormat('bold'); }
-                if (e.key.toLowerCase() === 'i') { e.preventDefault(); insertFormat('italic'); }
-                if (e.key.toLowerCase() === 'u') { e.preventDefault(); insertFormat('underline'); }
+                if (e.key.toLowerCase() === 'b') { e.preventDefault(); format('bold'); }
+                if (e.key.toLowerCase() === 'i') { e.preventDefault(); format('italic'); }
+                if (e.key.toLowerCase() === 'u') { e.preventDefault(); format('underline'); }
                 if (e.key.toLowerCase() === 'p') { e.preventDefault(); togglePreview(); }
             }
         });
