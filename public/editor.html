@@ -457,8 +457,32 @@
                 }
             },
 
+            // 获取contenteditable元素的光标位置
+            getCursorPos(element) {
+                const selection = window.getSelection();
+                if (selection.rangeCount === 0) return 0;
+                const range = selection.getRangeAt(0);
+                const preCaretRange = range.cloneRange();
+                preCaretRange.selectNodeContents(element);
+                preCaretRange.setEnd(range.startContainer, range.startOffset);
+                return preCaretRange.toString().length;
+            },
+
+            // 获取contenteditable元素的当前行
+            getCurrentLineForContentEditable(element) {
+                const pos = this.getCursorPos(element);
+                const text = element.innerText;
+                const lineStart = text.lastIndexOf('\n', pos - 1) + 1;
+                const lineEnd = text.indexOf('\n', pos);
+                return {
+                    line: text.substring(lineStart, lineEnd === -1 ? text.length : lineEnd),
+                    lineStart,
+                    lineEnd: lineEnd === -1 ? text.length : lineEnd
+                };
+            },
+
             install(textarea) {
-                // 监听键盘事件
+                // 监听编辑器键盘事件
                 textarea.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter') {
                         setTimeout(() => this.checkAndFormat(textarea, 'enter'), 0);
@@ -466,16 +490,148 @@
                     if (e.key === ' ') {
                         const pos = textarea.selectionStart;
                         const lineStart = textarea.value.lastIndexOf('\n', pos - 1) + 1;
-                        if (pos === lineStart) {  // 行首空格
+                        if (pos === lineStart) {
                             setTimeout(() => this.checkAndFormat(textarea, 'space'), 0);
                         }
                     }
                 });
 
-                // 粘贴和拖拽时检测
                 textarea.addEventListener('input', () => {
                     this.checkAndFormat(textarea, 'input');
                 });
+            },
+
+            installPreview(preview) {
+                // 监听预览区键盘事件
+                preview.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        setTimeout(() => {
+                            const { line, lineStart, lineEnd } = this.getCurrentLineForContentEditable(preview);
+                            // 获取光标前的文本
+                            const cursorPos = this.getCursorPos(preview);
+                            const textBeforeCursor = preview.innerText.substring(0, cursorPos);
+                            const lastNewline = textBeforeCursor.lastIndexOf('\n');
+                            const lineBeforeCursor = textBeforeCursor.substring(lastNewline + 1);
+                            if (lineBeforeCursor.trim()) {
+                                this.formatLineInContentEditable(preview, lineBeforeCursor, lastNewline + 1);
+                            }
+                        }, 0);
+                    }
+                    if (e.key === ' ') {
+                        const cursorPos = this.getCursorPos(preview);
+                        const text = preview.innerText;
+                        const lineStartPos = text.lastIndexOf('\n', cursorPos - 1) + 1;
+                        if (cursorPos === lineStartPos) {
+                            setTimeout(() => this.checkAndFormatForPreview(preview, 'space'), 0);
+                        }
+                    }
+                });
+
+                preview.addEventListener('input', () => {
+                    this.checkAndFormatForPreview(preview, 'input');
+                });
+            },
+
+            // 格式化contenteditable中的行
+            formatLineInContentEditable(preview, lineContent, lineStartPos) {
+                const trimmed = lineContent.trim();
+                if (!trimmed || this.isFormatted(lineContent)) return;
+
+                const chapterResult = this.detectChapterKeyword(lineContent);
+                if (chapterResult) {
+                    const text = preview.innerText;
+                    const before = text.substring(0, lineStartPos);
+                    const after = text.substring(lineStartPos + lineContent.length);
+                    preview.innerText = before + chapterResult.marker + trimmed + after;
+                    // 恢复光标位置
+                    const newPos = lineStartPos + chapterResult.marker.length + trimmed.length;
+                    this.setCursorPosition(preview, newPos);
+                    return;
+                }
+
+                const indentResult = this.detectHeadingByIndent(lineContent);
+                if (indentResult) {
+                    const text = preview.innerText;
+                    const before = text.substring(0, lineStartPos);
+                    const after = text.substring(lineStartPos + lineContent.length);
+                    preview.innerText = before + indentResult.marker + trimmed + after;
+                    const newPos = lineStartPos + indentResult.marker.length + trimmed.length;
+                    this.setCursorPosition(preview, newPos);
+                }
+            },
+
+            setCursorPosition(element, pos) {
+                const range = document.createRange();
+                const selection = window.getSelection();
+                let charCount = 0;
+                let found = false;
+
+                function traverseNodes(node) {
+                    if (found) return;
+                    if (node.nodeType === Node.TEXT_NODE) {
+                        const nextCount = charCount + node.length;
+                        if (pos <= nextCount) {
+                            range.setStart(node, pos - charCount);
+                            range.collapse(true);
+                            found = true;
+                        }
+                        charCount = nextCount;
+                    } else {
+                        for (let child of node.childNodes) {
+                            traverseNodes(child);
+                            if (found) break;
+                        }
+                    }
+                }
+
+                traverseNodes(element);
+                if (!found) {
+                    range.selectNodeContents(element);
+                    range.collapse(false);
+                }
+                selection.removeAllRanges();
+                selection.addRange(range);
+            },
+
+            checkAndFormatForPreview(preview, trigger) {
+                const hasSelection = window.getSelection().toString().length > 0;
+                if (hasSelection) return;
+
+                const { line, lineStart, lineEnd } = this.getCurrentLineForContentEditable(preview);
+                const trimmed = line.trim();
+                if (!trimmed) return;
+                if (this.isFormatted(line)) return;
+
+                if (trigger === 'enter') {
+                    return; // 已在keydown中处理
+                }
+
+                if (trigger === 'space') {
+                    const indentResult = this.detectHeadingByIndent(line);
+                    if (indentResult) {
+                        const text = preview.innerText;
+                        preview.innerText = text.substring(0, lineStart) + indentResult.marker + trimmed + text.substring(lineStart + line.length);
+                        this.setCursorPosition(preview, lineStart + indentResult.marker.length + trimmed.length);
+                    }
+                    return;
+                }
+
+                const codeResult = this.detectCodePattern(line);
+                if (codeResult) {
+                    const text = preview.innerText;
+                    const codeBlock = '```' + codeResult.language + '\n' + trimmed + '\n```';
+                    preview.innerText = text.substring(0, lineStart) + codeBlock + text.substring(lineStart + line.length);
+                    this.setCursorPosition(preview, lineStart + 4 + codeResult.language.length + trimmed.length + 5);
+                    return;
+                }
+
+                const chapterResult = this.detectChapterKeyword(line);
+                if (chapterResult) {
+                    const text = preview.innerText;
+                    preview.innerText = text.substring(0, lineStart) + chapterResult.marker + trimmed + text.substring(lineStart + line.length);
+                    this.setCursorPosition(preview, lineStart + chapterResult.marker.length + trimmed.length);
+                    return;
+                }
             }
         };
 
@@ -501,6 +657,7 @@
                 this.loadTheme();
                 this.bindEvents();
                 AutoFormat.install(this.elements.editor);
+                AutoFormat.installPreview(this.elements.preview);
                 this.loadNote();
             },
 
