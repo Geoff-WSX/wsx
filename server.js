@@ -520,39 +520,83 @@ function getDefaultTemplate(name, content) {
                 textarea.selectionStart = textarea.selectionEnd = before.length + 4 + language.length + line.trim().length + 5;
             },
 
-            checkAndFormat(textarea) {
+            checkAndFormat(textarea, trigger) {
+                const hasSelection = textarea.selectionStart !== textarea.selectionEnd;
+                if (hasSelection) return;
+
                 const { line, lineStart, lineEnd } = this.getCurrentLine(textarea);
                 const trimmed = line.trim();
+
                 if (!trimmed) return;
+                if (this.isFormatted(line)) return;
+
+                if (trigger === 'enter') {
+                    const lineBeforeCursor = textarea.value.substring(textarea.value.lastIndexOf('\n', textarea.selectionStart - 1) + 1, textarea.selectionStart);
+                    const trimmedBefore = lineBeforeCursor.trim();
+                    if (!trimmedBefore) return;
+                    if (this.isFormatted(lineBeforeCursor)) return;
+
+                    const chapterResult = this.detectChapterKeyword(lineBeforeCursor);
+                    if (chapterResult) {
+                        const ls = textarea.value.lastIndexOf('\n', textarea.selectionStart - 1) + 1;
+                        this.applyHeading(textarea, ls, chapterResult.marker, lineBeforeCursor);
+                        return;
+                    }
+
+                    const indentResult = this.detectHeadingByIndent(lineBeforeCursor);
+                    if (indentResult) {
+                        const ls = textarea.value.lastIndexOf('\n', textarea.selectionStart - 1) + 1;
+                        this.applyHeading(textarea, ls, indentResult.marker, lineBeforeCursor);
+                    }
+                    return;
+                }
+
+                if (trigger === 'space') {
+                    const pos = textarea.selectionStart;
+                    const lineStartPos = textarea.value.lastIndexOf('\n', pos - 1) + 1;
+                    if (pos !== lineStartPos) return;
+
+                    const indentResult = this.detectHeadingByIndent(line);
+                    if (indentResult) {
+                        this.applyHeading(textarea, lineStart, indentResult.marker, indentResult.content);
+                    }
+                    return;
+                }
 
                 const codeResult = this.detectCodePattern(line);
                 if (codeResult) {
                     this.applyCodeBlock(textarea, lineStart, lineEnd, codeResult.language, line);
-                    textarea.dispatchEvent(new Event('input', { bubbles: true }));
                     return;
                 }
 
                 const chapterResult = this.detectChapterKeyword(line);
                 if (chapterResult) {
                     this.applyHeading(textarea, lineStart, chapterResult.marker, chapterResult.content);
-                    textarea.dispatchEvent(new Event('input', { bubbles: true }));
                     return;
                 }
 
-                const headingResult = this.detectHeadingByIndent(line);
-                if (headingResult) {
-                    this.applyHeading(textarea, lineStart, headingResult.marker, headingResult.content);
-                    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+                const indentResult = this.detectHeadingByIndent(line);
+                if (indentResult) {
+                    this.applyHeading(textarea, lineStart, indentResult.marker, indentResult.content);
                 }
             },
 
             install(textarea) {
-                let debounceTimer;
+                textarea.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        setTimeout(() => this.checkAndFormat(textarea, 'enter'), 0);
+                    }
+                    if (e.key === ' ') {
+                        const pos = textarea.selectionStart;
+                        const lineStart = textarea.value.lastIndexOf('\n', pos - 1) + 1;
+                        if (pos === lineStart) {
+                            setTimeout(() => this.checkAndFormat(textarea, 'space'), 0);
+                        }
+                    }
+                });
+
                 textarea.addEventListener('input', () => {
-                    clearTimeout(debounceTimer);
-                    debounceTimer = setTimeout(() => {
-                        this.checkAndFormat(textarea);
-                    }, this.config.debounceDelay);
+                    this.checkAndFormat(textarea, 'input');
                 });
             }
         };

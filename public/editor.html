@@ -390,47 +390,93 @@
                 textarea.selectionStart = textarea.selectionEnd = before.length + 4 + language.length + line.trim().length + 5;
             },
 
-            checkAndFormat(textarea) {
+            checkAndFormat(textarea, trigger) {
+                const hasSelection = textarea.selectionStart !== textarea.selectionEnd;
+                if (hasSelection) return;  // 跳过有选区的情况
+
                 const { line, lineStart, lineEnd } = this.getCurrentLine(textarea);
                 const trimmed = line.trim();
-                console.log('checkAndFormat called:', { line, trimmed, pos: textarea.selectionStart }); // DEBUG
+
+                // 跳过空行
                 if (!trimmed) return;
 
-                // 检查代码模式
+                // 跳过已格式化的行
+                if (this.isFormatted(line)) return;
+
+                // Enter键触发时，只格式化刚完成的行（不含换行符）
+                if (trigger === 'enter') {
+                    const lineBeforeCursor = textarea.value.substring(textarea.value.lastIndexOf('\n', textarea.selectionStart - 1) + 1, textarea.selectionStart);
+                    const trimmedBefore = lineBeforeCursor.trim();
+                    if (!trimmedBefore) return;
+                    if (this.isFormatted(lineBeforeCursor)) return;
+
+                    const chapterResult = this.detectChapterKeyword(lineBeforeCursor);
+                    if (chapterResult) {
+                        const ls = textarea.value.lastIndexOf('\n', textarea.selectionStart - 1) + 1;
+                        this.applyHeading(textarea, ls, chapterResult.marker, lineBeforeCursor);
+                        return;
+                    }
+
+                    const indentResult = this.detectHeadingByIndent(lineBeforeCursor);
+                    if (indentResult) {
+                        const ls = textarea.value.lastIndexOf('\n', textarea.selectionStart - 1) + 1;
+                        this.applyHeading(textarea, ls, indentResult.marker, lineBeforeCursor);
+                    }
+                    return;
+                }
+
+                // 空格键触发时，只在行首有效
+                if (trigger === 'space') {
+                    const cursorPos = textarea.selectionStart;
+                    const lineStartPos = textarea.value.lastIndexOf('\n', cursorPos - 1) + 1;
+                    if (cursorPos !== lineStartPos) return;  // 空格不在行首
+
+                    const indentResult = this.detectHeadingByIndent(line);
+                    if (indentResult) {
+                        this.applyHeading(textarea, lineStart, indentResult.marker, indentResult.content);
+                    }
+                    return;
+                }
+
+                // 代码模式检测（输入时实时检测）
                 const codeResult = this.detectCodePattern(line);
                 if (codeResult) {
-                    console.log('Detected code:', codeResult); // DEBUG
                     this.applyCodeBlock(textarea, lineStart, lineEnd, codeResult.language, line);
-                    textarea.dispatchEvent(new Event('input', { bubbles: true }));
                     return;
                 }
 
-                // 检查章节关键词
+                // 章节关键词检测
                 const chapterResult = this.detectChapterKeyword(line);
-                console.log('Chapter result:', chapterResult); // DEBUG
                 if (chapterResult) {
                     this.applyHeading(textarea, lineStart, chapterResult.marker, chapterResult.content);
-                    textarea.dispatchEvent(new Event('input', { bubbles: true }));
                     return;
                 }
 
-                // 检查缩进标题
-                const headingResult = this.detectHeadingByIndent(line);
-                if (headingResult) {
-                    this.applyHeading(textarea, lineStart, headingResult.marker, headingResult.content);
-                    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+                // 缩进标题检测
+                const indentResult = this.detectHeadingByIndent(line);
+                if (indentResult) {
+                    this.applyHeading(textarea, lineStart, indentResult.marker, indentResult.content);
                 }
             },
 
             install(textarea) {
-                console.log('AutoFormat.install called, textarea:', textarea); // DEBUG
-                let debounceTimer;
+                // 监听键盘事件
+                textarea.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        setTimeout(() => this.checkAndFormat(textarea, 'enter'), 0);
+                    }
+                    if (e.key === ' ') {
+                        const pos = textarea.selectionStart;
+                        const lineStart = textarea.value.lastIndexOf('\n', pos - 1) + 1;
+                        if (pos === lineStart) {  // 行首空格
+                            setTimeout(() => this.checkAndFormat(textarea, 'space'), 0);
+                        }
+                    }
+                });
+
+                // 粘贴和拖拽时检测
                 textarea.addEventListener('input', () => {
-                    console.log('input event fired'); // DEBUG
-                    clearTimeout(debounceTimer);
-                    debounceTimer = setTimeout(() => {
-                        this.checkAndFormat(textarea);
-                    }, this.config.debounceDelay);
+                    this.checkAndFormat(textarea, 'input');
                 });
             }
         };
@@ -489,7 +535,6 @@
             bindEvents() {
                 // 编辑器变化时更新预览
                 this.elements.editor.addEventListener('input', () => {
-                    console.log('Editor input event!'); // DEBUG
                     this.hasChanges = true;
                     this.setStatus('未保存', '');
                     this.elements.preview.innerHTML = Parser.parse(this.elements.editor.value);
@@ -750,7 +795,6 @@
 
                 const lineStart = text.lastIndexOf('\n', start - 1) + 1;
                 const lineContent = text.substring(lineStart);
-                console.log('format h1:', { start, end, text, lineStart, lineContent }); // DEBUG
 
                 // 检测是否已存在该行级格式
                 if (cfg.regex.test(lineContent)) {
@@ -839,7 +883,7 @@
             Editor.updatePreview();
         }
 
-        document.addEventListener('DOMContentLoaded', () => { console.log('DOMContentLoaded!'); Editor.init(); });
+        document.addEventListener('DOMContentLoaded', () => Editor.init());
     </script>
 </body>
 </html>
