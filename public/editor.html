@@ -603,6 +603,39 @@
                     this.setCursorPosition(preview, newPos);
                     return;
                 }
+            },
+
+            setCursorPosition(element, pos) {
+                const range = document.createRange();
+                const selection = window.getSelection();
+                let charCount = 0;
+                let found = false;
+
+                function traverseNodes(node) {
+                    if (found) return;
+                    if (node.nodeType === Node.TEXT_NODE) {
+                        const nextCount = charCount + node.length;
+                        if (pos <= nextCount) {
+                            range.setStart(node, pos - charCount);
+                            range.collapse(true);
+                            found = true;
+                        }
+                        charCount = nextCount;
+                    } else {
+                        for (let child of node.childNodes) {
+                            traverseNodes(child);
+                            if (found) break;
+                        }
+                    }
+                }
+
+                traverseNodes(element);
+                if (!found) {
+                    range.selectNodeContents(element);
+                    range.collapse(false);
+                }
+                selection.removeAllRanges();
+                selection.addRange(range);
             }
         };
 
