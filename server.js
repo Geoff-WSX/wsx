@@ -620,114 +620,100 @@ function getDefaultTemplate(name, content) {
                 };
             },
 
-            installPreview(preview) {
+            installPreview(preview, editor) {
                 preview.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        setTimeout(() => {
-                            const cursorPos = this.getCursorPos(preview);
-                            const textBeforeCursor = preview.innerText.substring(0, cursorPos);
-                            const lastNewline = textBeforeCursor.lastIndexOf('\n');
-                            const lineBeforeCursor = textBeforeCursor.substring(lastNewline + 1);
-                            if (lineBeforeCursor.trim() && !this.isFormatted(lineBeforeCursor)) {
-                                const chapterResult = this.detectChapterKeyword(lineBeforeCursor);
-                                if (chapterResult) {
-                                    const text = preview.innerText;
-                                    const lineStartPos = lastNewline + 1;
-                                    const before = text.substring(0, lineStartPos);
-                                    const after = text.substring(lineStartPos + lineBeforeCursor.length);
-                                    preview.innerText = before + chapterResult.marker + lineBeforeCursor.trim() + after;
-                                    this.setCursorPosition(preview, lineStartPos + chapterResult.marker.length + lineBeforeCursor.trim().length);
-                                }
-                            }
-                        }, 0);
-                    }
-                    if (e.key === ' ') {
-                        const cursorPos = this.getCursorPos(preview);
-                        const text = preview.innerText;
-                        const lineStartPos = text.lastIndexOf('\n', cursorPos - 1) + 1;
-                        if (cursorPos === lineStartPos) {
-                            setTimeout(() => this.checkAndFormatForPreview(preview, 'space'), 0);
-                        }
-                    }
+                    this.handlePreviewKeydown(preview, editor, e);
                 });
 
                 preview.addEventListener('input', () => {
-                    this.checkAndFormatForPreview(preview, 'input');
+                    this.checkAndFormatForPreview(preview, editor, 'input');
                 });
             },
 
-            formatLineInContentEditable(preview, lineContent, lineStartPos) {
-                const trimmed = lineContent.trim();
-                if (!trimmed || this.isFormatted(lineContent)) return;
-                const chapterResult = this.detectChapterKeyword(lineContent);
-                if (chapterResult) {
-                    const text = preview.innerText;
-                    preview.innerText = text.substring(0, lineStartPos) + chapterResult.marker + trimmed + text.substring(lineStartPos + lineContent.length);
-                    this.setCursorPosition(preview, lineStartPos + chapterResult.marker.length + trimmed.length);
+            handlePreviewKeydown(preview, editor, e) {
+                if (e.key === 'Enter') {
+                    setTimeout(() => {
+                        const cursorPos = this.getCursorPos(preview);
+                        const textBeforeCursor = preview.innerText.substring(0, cursorPos);
+                        const lastNewline = textBeforeCursor.lastIndexOf('\n');
+                        const lineBeforeCursor = textBeforeCursor.substring(lastNewline + 1);
+                        if (lineBeforeCursor.trim() && !this.isFormatted(lineBeforeCursor)) {
+                            const chapterResult = this.detectChapterKeyword(lineBeforeCursor);
+                            if (chapterResult) {
+                                const newText = lineBeforeCursor.replace(lineBeforeCursor.trim(), chapterResult.marker + lineBeforeCursor.trim());
+                                const fullText = preview.innerText;
+                                const lineStartPos = lastNewline + 1;
+                                const before = fullText.substring(0, lineStartPos);
+                                const after = fullText.substring(lineStartPos + lineBeforeCursor.length);
+                                editor.value = before + newText + after;
+                                preview.innerHTML = Parser.parse(editor.value);
+                                const newPos = lineStartPos + chapterResult.marker.length + lineBeforeCursor.trim().length;
+                                this.setCursorPosition(preview, newPos);
+                            }
+                        }
+                    }, 0);
                 }
-            },
-
-            setCursorPosition(element, pos) {
-                const range = document.createRange();
-                const selection = window.getSelection();
-                let charCount = 0;
-                let found = false;
-                function traverseNodes(node) {
-                    if (found) return;
-                    if (node.nodeType === Node.TEXT_NODE) {
-                        const nextCount = charCount + node.length;
-                        if (pos <= nextCount) {
-                            range.setStart(node, pos - charCount);
-                            range.collapse(true);
-                            found = true;
-                        }
-                        charCount = nextCount;
-                    } else {
-                        for (let child of node.childNodes) {
-                            traverseNodes(child);
-                            if (found) break;
-                        }
+                if (e.key === ' ') {
+                    const cursorPos = this.getCursorPos(preview);
+                    const text = preview.innerText;
+                    const lineStartPos = text.lastIndexOf('\n', cursorPos - 1) + 1;
+                    if (cursorPos === lineStartPos) {
+                        setTimeout(() => this.formatPreviewSpace(preview, editor, cursorPos), 0);
                     }
                 }
-                traverseNodes(element);
-                if (!found) {
-                    range.selectNodeContents(element);
-                    range.collapse(false);
-                }
-                selection.removeAllRanges();
-                selection.addRange(range);
             },
 
-            checkAndFormatForPreview(preview, trigger) {
+            formatPreviewSpace(preview, editor, cursorPos) {
+                const text = preview.innerText;
+                const lineStartPos = text.lastIndexOf('\n', cursorPos - 1) + 1;
+                const lineEnd = text.indexOf('\n', cursorPos);
+                const line = text.substring(lineStartPos, lineEnd === -1 ? text.length : lineEnd);
+                const trimmed = line.trim();
+                if (!trimmed || this.isFormatted(line)) return;
+
+                const indentResult = this.detectHeadingByIndent(line);
+                if (indentResult) {
+                    const newText = indentResult.marker + trimmed;
+                    const before = text.substring(0, lineStartPos);
+                    const after = text.substring(lineStartPos + line.length);
+                    editor.value = before + newText + after;
+                    preview.innerHTML = Parser.parse(editor.value);
+                    const newPos = lineStartPos + indentResult.marker.length + trimmed.length;
+                    this.setCursorPosition(preview, newPos);
+                }
+            },
+
+            checkAndFormatForPreview(preview, editor, trigger) {
                 const hasSelection = window.getSelection().toString().length > 0;
                 if (hasSelection) return;
+
                 const { line, lineStart, lineEnd } = this.getCurrentLineForContentEditable(preview);
                 const trimmed = line.trim();
                 if (!trimmed) return;
                 if (this.isFormatted(line)) return;
+
                 if (trigger === 'enter') return;
-                if (trigger === 'space') {
-                    const indentResult = this.detectHeadingByIndent(line);
-                    if (indentResult) {
-                        const text = preview.innerText;
-                        preview.innerText = text.substring(0, lineStart) + indentResult.marker + trimmed + text.substring(lineStart + line.length);
-                        this.setCursorPosition(preview, lineStart + indentResult.marker.length + trimmed.length);
-                    }
-                    return;
-                }
+
+                if (trigger === 'space') return;
+
                 const codeResult = this.detectCodePattern(line);
                 if (codeResult) {
-                    const text = preview.innerText;
                     const codeBlock = '\x60\x60\x60' + codeResult.language + '\n' + trimmed + '\n\x60\x60\x60';
-                    preview.innerText = text.substring(0, lineStart) + codeBlock + text.substring(lineStart + line.length);
-                    this.setCursorPosition(preview, lineStart + 4 + codeResult.language.length + trimmed.length + 5);
+                    const text = preview.innerText;
+                    editor.value = text.substring(0, lineStart) + codeBlock + text.substring(lineStart + line.length);
+                    preview.innerHTML = Parser.parse(editor.value);
+                    const newPos = lineStart + 4 + codeResult.language.length + trimmed.length + 5;
+                    this.setCursorPosition(preview, newPos);
                     return;
                 }
+
                 const chapterResult = this.detectChapterKeyword(line);
                 if (chapterResult) {
                     const text = preview.innerText;
-                    preview.innerText = text.substring(0, lineStart) + chapterResult.marker + trimmed + text.substring(lineStart + line.length);
-                    this.setCursorPosition(preview, lineStart + chapterResult.marker.length + trimmed.length);
+                    editor.value = text.substring(0, lineStart) + chapterResult.marker + trimmed + text.substring(lineStart + line.length);
+                    preview.innerHTML = Parser.parse(editor.value);
+                    const newPos = lineStart + chapterResult.marker.length + trimmed.length;
+                    this.setCursorPosition(preview, newPos);
                 }
             }
         };
@@ -1004,7 +990,7 @@ function getDefaultTemplate(name, content) {
 
         editor.addEventListener('input', () => { hasChanges = true; status.textContent = '未保存'; status.className = 'status'; updatePreview(); });
         AutoFormat.install(editor);
-        AutoFormat.installPreview(preview);
+        AutoFormat.installPreview(preview, editor);
         themeToggle.addEventListener('click', toggleTheme);
 
         // 预览区编辑
