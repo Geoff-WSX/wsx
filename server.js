@@ -753,9 +753,8 @@ function getDefaultTemplate(name, content) {
                     editor.value = text.substring(0, lineStart) + lineContent.substring(prefixLen) + text.substring(lineStart + lineContent.length);
                     editor.selectionStart = editor.selectionEnd = lineStart;
                 } else {
-                    editor.value = text.substring(0, lineStart) + cfg.marker + selected + text.substring(end);
-                    editor.selectionStart = lineStart + cfg.marker.length;
-                    editor.selectionEnd = lineStart + cfg.marker.length + selected.length;
+                    editor.value = text.substring(0, lineStart) + cfg.marker + lineContent + text.substring(lineStart + lineContent.length);
+                    editor.selectionStart = editor.selectionEnd = lineStart + cfg.marker.length + lineContent.length;
                 }
                 editor.focus();
                 hasChanges = true; status.textContent = '未保存'; status.className = 'status'; updatePreview();
